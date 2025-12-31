@@ -3,14 +3,48 @@ from main import ip
 import secrets
 from datetime import datetime
 import os
+import json
 from core import Core
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
 core = Core()
 
-rooms = ["general"]
-chat_rooms = {"general": []}
+DATA_DIR = 'data'
+USER_ROOMS_DIR = os.path.join(DATA_DIR, 'user_rooms')
+
+def get_user_rooms_file(user_id):
+    os.makedirs(USER_ROOMS_DIR, exist_ok=True)
+    return os.path.join(USER_ROOMS_DIR, f"{user_id}.json")
+
+def load_user_rooms(user_id):
+    """Загружает комнаты ТОЛЬКО ЭТОГО пользователя"""
+    file_path = get_user_rooms_file(user_id)
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            return json.load(f)
+    return ["general"]
+
+def save_user_rooms(user_id, user_rooms):
+    """Сохраняет комнаты ТОЛЬКО ЭТОГО пользователя"""
+    file_path = get_user_rooms_file(user_id)
+    with open(file_path, 'w') as f:
+        json.dump(user_rooms, f)
+
+GLOBAL_CHAT_ROOMS_FILE = os.path.join(DATA_DIR, 'global_chat_rooms.json')
+
+def load_global_chat_rooms():
+    os.makedirs(DATA_DIR, exist_ok=True)
+    if os.path.exists(GLOBAL_CHAT_ROOMS_FILE):
+        with open(GLOBAL_CHAT_ROOMS_FILE, 'r') as f:
+            return json.load(f)
+    return {"general": []}
+
+def save_global_chat_rooms(chat_rooms):
+    with open(GLOBAL_CHAT_ROOMS_FILE, 'w') as f:
+        json.dump(chat_rooms, f)
+
+chat_rooms = load_global_chat_rooms()
 active_sessions = set()
 
 @app.route('/')
@@ -40,6 +74,7 @@ def command():
             "user": "SYSTEM", "user_id": "SYSTEM",
             "message": "NYXX(MASTER) entered the Shadows!", "time": timestamp, "system": True
         })
+        save_global_chat_rooms(chat_rooms)
         return jsonify({'output': 'MASTER NYXX-mode activated! Opening chat...', 'redirect': '/chat'})
 
     elif cmd == "register":
@@ -77,6 +112,7 @@ def command():
                 "user": "SYSTEM", "user_id": "SYSTEM",
                 "message": f"{user_data['username']} entered the Shadows!", "time": timestamp, "system": True
             })
+            save_global_chat_rooms(chat_rooms)
             return jsonify({'output': f'Successfully authenticated! Opening chat...', 'redirect': '/chat'})
         else:
             return jsonify({'output': 'Invalid seed!'})
@@ -88,6 +124,7 @@ def command():
             "user": "SYSTEM", "user_id": "SYSTEM",
             "message": f"{session.get('username')} left the Shadows", "time": timestamp, "system": True
         })
+        save_global_chat_rooms(chat_rooms)
         if user_id:
             active_sessions.discard(user_id)
         session.clear()
@@ -106,27 +143,58 @@ def add_room():
     if not room_name or room_name == 'general':
         return jsonify({'success': False, 'message': 'Invalid room name'})
     
-    if room_name in rooms:
-        return jsonify({'success': True, 'message': f'Joined existing room: {room_name}'})
+    user_id = session['user_id']
+    user_rooms = load_user_rooms(user_id)
     
-    rooms.append(room_name)
-    chat_rooms[room_name] = []
-    timestamp = datetime.now().strftime("%H:%M:%S")
-    chat_rooms[room_name].append({
-        "user": "SYSTEM", "user_id": "SYSTEM",
-        "message": f"Room '{room_name}' created by {session['username']}", 
-        "time": timestamp, "system": True
-    })
+    if room_name not in user_rooms:
+        user_rooms.append(room_name)
+        save_user_rooms(user_id, user_rooms)
     
-    return jsonify({
-        'success': True, 
-        'message': f'Room "{room_name}" created!',
-        'rooms': rooms
-    })
+        if room_name not in chat_rooms:
+            chat_rooms[room_name] = []
+            timestamp = datetime.now().strftime("%H:%M:%S")
+            chat_rooms[room_name].append({
+                "user": "SYSTEM", "user_id": "SYSTEM",
+                "message": f"Room '{room_name}' created by {session['username']}", 
+                "time": timestamp, "system": True
+            })
+            save_global_chat_rooms(chat_rooms)
+            return jsonify({
+                'success': True, 
+                'message': f'Room "{room_name}" created!',
+                'rooms': user_rooms,
+                'switch_to': room_name
+            })
+        else:
+            timestamp = datetime.now().strftime("%H:%M:%S")
+            chat_rooms[room_name].append({
+                "user": "SYSTEM", "user_id": "SYSTEM",
+                "message": f"{session['username']} joined room '{room_name}'", 
+                "time": timestamp, "system": True
+            })
+            save_global_chat_rooms(chat_rooms)
+            return jsonify({
+                'success': True, 
+                'message': f'Joined existing room "{room_name}"!',
+                'rooms': user_rooms,
+                'switch_to': room_name
+            })
+    else:
+        return jsonify({
+            'success': True, 
+            'message': f'Already in room "{room_name}"!',
+            'rooms': user_rooms,
+            'switch_to': room_name
+        })
 
 @app.route('/rooms')
 def get_rooms():
-    return jsonify({'rooms': rooms})
+    if not session.get('logged_in'):
+        return jsonify({'rooms': []})
+    
+    user_id = session['user_id']
+    user_rooms = load_user_rooms(user_id)
+    return jsonify({'rooms': user_rooms})
 
 @app.route('/chat_history')
 def chat_history_route():
@@ -152,6 +220,7 @@ def chat_send():
             "time": timestamp,
             "system": False
         })
+        save_global_chat_rooms(chat_rooms)
         return jsonify({'status': 'ok'})
     
     return jsonify({'error': 'Room not found'})
@@ -183,10 +252,13 @@ if __name__ == '__main__':
     os.makedirs('data/users', exist_ok=True)
     os.makedirs('data/images', exist_ok=True)
     os.makedirs('templates', exist_ok=True)
+    os.makedirs('data/user_rooms', exist_ok=True)
     
     app.static_folder = 'data/images'
     app.static_url_path = '/data/images'
     
     print(f"Shadows: {ip}:5000")
-    print("✅ ROOMS SYSTEM: general + dynamic rooms!")
+    print("PER-USER ROOMS SYSTEM!")
+    print(f"Global chats: {len(chat_rooms)} rooms")
+    
     app.run(host=ip, port=5000, debug=True, threaded=True)

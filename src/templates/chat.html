@@ -42,14 +42,47 @@ h1{margin:0;font-size:2.2rem;font-weight:900;background:linear-gradient(45deg,#0
 .rooms-panel{flex:1;border:2px solid #0f0;box-shadow:0 0 40px #0f0,inset 0 0 20px rgba(0,255,0,0.1);background:linear-gradient(145deg,#000,#111);display:flex;flex-direction:column;overflow:hidden;position:relative;}
 .rooms-header{color:#00ff88;font-weight:bold;padding:15px;background:linear-gradient(145deg,rgba(0,255,136,0.1),transparent);border-bottom:2px solid #0f0;text-shadow:0 0 10px #00ff88;font-size:16px;}
 .rooms-list{flex:1;padding:15px;overflow-y:auto;}
-.room-item{padding:12px 15px;margin:8px 0;border-radius:6px;cursor:pointer;transition:all 0.3s ease;color:#0f0;font-family:monospace;font-size:14px;text-shadow:0 0 5px #0f0;background:rgba(0,255,0,0.08);border:1px solid rgba(0,255,0,0.3);user-select:none;}
+.room-item{padding:12px 15px;margin:8px 0;border-radius:6px;cursor:pointer;transition:all 0.3s ease;color:#0f0;font-family:monospace;font-size:14px;text-shadow:0 0 5px #0f0;background:rgba(0,255,0,0.08);border:1px solid rgba(0,255,0,0.3);user-select:none;position:relative;}
 .room-item:hover{background:rgba(0,255,136,0.2);border-color:#00ff88;box-shadow:0 0 15px rgba(0,255,0,0.4);transform:translateX(3px);}
 .room-item.general{background:linear-gradient(145deg,#00ff88,#0f0);color:#000;border:2px solid #00ff88;font-weight:bold;text-shadow:none;box-shadow:0 0 20px rgba(0,255,136,0.6);position:sticky;top:0;z-index:10;}
 .room-item.general:hover{background:linear-gradient(145deg,#0f0,#00ff88) !important;transform:none !important;}
 .room-item.selected{background:linear-gradient(145deg,#ff4444,#cc0000);color:#fff;border:1px solid #ff6666;text-shadow:0 0 8px #ff4444;font-weight:bold;}
 .room-item.add-room{background:linear-gradient(145deg,rgba(0,255,136,0.2),rgba(0,255,0,0.1));color:#00ff88;font-size:24px;font-weight:bold;text-align:center;line-height:1.2;border:2px solid #00ff88;text-shadow:0 0 10px #00ff88;}
+.room-delete-btn {
+    position: absolute !important; 
+    right: 8px; top: 50%; 
+    transform: translateY(-50%); 
+    color: #ff4444 !important; 
+    font-size: 12px !important; 
+    font-weight: bold !important; 
+    cursor: pointer !important; 
+    opacity: 0.7 !important; 
+    transition: all 0.2s !important;
+    text-shadow: 0 0 3px #ff0000 !important;
+    pointer-events: auto !important;
+    background: rgba(255,0,0,0.2);
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: monospace !important;
+}
+.room-delete-btn:hover {
+    opacity: 1 !important;
+    background: rgba(255,68,68,0.4) !important;
+    transform: translateY(-50%) scale(1.2) !important;
+}
+.room-item:hover .room-delete-btn {
+    opacity: 1 !important;
+}
 .room-item.dragging{opacity:0.5;transform:rotate(5deg);}
-.room-item.drag-over{background:rgba(255,68,68,0.3) !important;border-color:#ff4444 !important;}
+.room-item.drag-over {
+    background: rgba(255,68,68,0.4) !important;
+    border-color: #ff4444 !important;
+    transform: translateX(5px) scale(1.02) !important;
+}
 .rooms-list::-webkit-scrollbar{width:6px;}
 .rooms-list::-webkit-scrollbar-track{background:#111;}
 .rooms-list::-webkit-scrollbar-thumb{background:linear-gradient(#0f0,#00ff88);border-radius:3px;}
@@ -83,10 +116,8 @@ h1{margin:0;font-size:2.2rem;font-weight:900;background:linear-gradient(45deg,#0
     </div>
 
     <div class="rooms-panel">
-        <div class="rooms-header">ROOMS</div>
+        <div class="rooms-header">YOUR ROOMS</div>
         <div class="rooms-list" id="rooms-list">
-            <div class="room-item general selected" data-room="general">general</div>
-            <div class="room-item add-room" onclick="showAddRoom()">+</div>
         </div>
     </div>
 </div>
@@ -96,15 +127,148 @@ let chat = document.getElementById('chat');
 let MY_USERNAME = null;
 let currentRoom = 'general';
 let draggedItem = null;
+let userRooms = [];
+
+function loadUserRooms() {
+    fetch('/rooms')
+    .then(r => r.json())
+    .then(data => {
+        userRooms = data.rooms;
+        renderRooms();
+    })
+    .catch(err => console.error('Rooms load error:', err));
+}
+
+function renderRooms() {
+    const roomsList = document.getElementById('rooms-list');
+    roomsList.innerHTML = '';
+    
+    const uniqueRooms = ['general', ...new Set(userRooms.filter(r => r !== 'general'))];
+    
+    const generalItem = document.createElement('div');
+    generalItem.className = 'room-item general' + (currentRoom === 'general' ? ' selected' : '');
+    generalItem.dataset.room = 'general';
+    generalItem.textContent = 'general';
+    generalItem.onclick = () => switchRoom('general');
+    roomsList.appendChild(generalItem);
+    
+    uniqueRooms.forEach(roomName => {
+        if (roomName !== 'general') {
+            if (!Array.from(roomsList.children).some(item => 
+                item.dataset.room === roomName && !item.classList.contains('general'))) {
+                
+                const roomItem = document.createElement('div');
+                roomItem.className = 'room-item' + (currentRoom === roomName ? ' selected' : '');
+                roomItem.draggable = true;
+                roomItem.dataset.room = roomName;
+                roomItem.style.position = 'relative';
+                
+                const roomText = document.createElement('span');
+                roomText.textContent = roomName;
+                roomText.style.paddingRight = '20px';
+                roomText.style.display = 'block';
+                
+                const deleteBtn = document.createElement('span');
+                deleteBtn.innerHTML = '✕';
+                deleteBtn.className = 'room-delete-btn';
+                deleteBtn.title = 'Delete room';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    if (confirm(`Delete room "${roomName}"?\nThis won't delete chat history.`)) {
+                        deleteUserRoom(roomName);
+                    }
+                };
+                
+                roomItem.appendChild(roomText);
+                roomItem.appendChild(deleteBtn);
+                roomItem.onclick = (e) => { 
+                    if (!e.target.classList.contains('room-delete-btn')) {
+                        switchRoom(roomName); 
+                    }
+                };
+                roomsList.appendChild(roomItem);
+            }
+        }
+    });
+    
+    const addButton = document.getElementById('rooms-list')?.querySelector('.add-room');
+    if (!addButton) {
+        const newAddButton = document.createElement('div');
+        newAddButton.className = 'room-item add-room';
+        newAddButton.textContent = '+';
+        newAddButton.onclick = showAddRoom;
+        roomsList.appendChild(newAddButton);
+    }
+}
+
+function deleteUserRoom(roomName) {
+    fetch('/delete_room', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({room: roomName})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            loadUserRooms();
+            if (currentRoom === roomName) {
+                currentRoom = 'general';
+                updateChat();
+            }
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(err => console.error('Delete error:', err));
+}
+
+function showAddRoom() {
+    let roomName = prompt('Enter room name or username:');
+    if (roomName && roomName.toLowerCase() !== 'general') {
+        fetch('/add_room', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({room: roomName})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                loadUserRooms();
+                if (data.switch_to) {
+                    switchRoom(data.switch_to);
+                }
+                console.log(data.message);
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error('Error:', err));
+    } else if (roomName && roomName.toLowerCase() === 'general') {
+        alert('general всегда наверху! 😎');
+    }
+}
+
+function switchRoom(roomName) {
+    currentRoom = roomName;
+    document.querySelectorAll('.room-item').forEach(item => 
+        item.classList.remove('selected')
+    );
+    const targetRoom = document.querySelector(`[data-room="${roomName}"]`);
+    if (targetRoom) targetRoom.classList.add('selected');
+    updateChat();
+    console.log('Switched to room:', roomName);
+}
 
 function initDragAndDrop() {
     const roomsList = document.getElementById('rooms-list');
     
     roomsList.addEventListener('dragstart', e => {
         const item = e.target.closest('.room-item');
-        if (item && !item.classList.contains('general')) {
+        if (item && !item.classList.contains('general') && !item.classList.contains('add-room')) {
             draggedItem = item;
             item.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', item.outerHTML);
         } else {
             e.preventDefault();
         }
@@ -122,9 +286,24 @@ function initDragAndDrop() {
     
     roomsList.addEventListener('dragover', e => {
         e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        
         const item = e.target.closest('.room-item');
-        if (item && !item.classList.contains('general') && draggedItem !== item) {
+        if (item && !item.classList.contains('general') && !item.classList.contains('add-room') && draggedItem !== item) {
             item.classList.add('drag-over');
+            
+            const rect = item.getBoundingClientRect();
+            const midpoint = rect.top + rect.height / 2;
+            
+            if (e.clientY < midpoint) {
+                roomsList.insertBefore(draggedItem, item);
+            } else {
+                if (item.nextSibling) {
+                    roomsList.insertBefore(draggedItem, item.nextSibling);
+                } else {
+                    roomsList.appendChild(draggedItem);
+                }
+            }
         }
     });
     
@@ -135,78 +314,11 @@ function initDragAndDrop() {
     
     roomsList.addEventListener('drop', e => {
         e.preventDefault();
-        const dropTarget = e.target.closest('.room-item');
-        if (dropTarget && draggedItem && !dropTarget.classList.contains('general')) {
-            const roomsList = document.getElementById('rooms-list');
-            if (dropTarget.nextSibling) {
-                roomsList.insertBefore(draggedItem, dropTarget.nextSibling);
-            } else {
-                roomsList.insertBefore(draggedItem, dropTarget);
-            }
-        }
+        document.querySelectorAll('.room-item.drag-over').forEach(item => 
+            item.classList.remove('drag-over')
+        );
     });
 }
-
-function showAddRoom() {
-    let roomName = prompt('Enter room name or username:');
-    if (roomName && roomName.toLowerCase() !== 'general') {
-        fetch('/add_room', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({room: roomName})
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                addRoom(roomName);
-                console.log(data.message);
-            } else {
-                alert(data.message);
-            }
-        })
-        .catch(err => console.error('Error:', err));
-    } else if (roomName && roomName.toLowerCase() === 'general') {
-        alert('general всегда наверху! 😎');
-    }
-}
-
-function addRoom(roomName) {
-    const roomsList = document.getElementById('rooms-list');
-    let existing = Array.from(roomsList.children).find(item => 
-        item.dataset.room === roomName.toLowerCase() && !item.classList.contains('general')
-    );
-    if (!existing) {
-        const roomItem = document.createElement('div');
-        roomItem.className = 'room-item';
-        roomItem.draggable = true;
-        roomItem.dataset.room = roomName.toLowerCase();
-        roomItem.textContent = roomName;
-        roomItem.onclick = (e) => { e.stopPropagation(); switchRoom(roomName.toLowerCase()); };
-        const addButton = roomsList.querySelector('.add-room');
-        roomsList.insertBefore(roomItem, addButton);
-    }
-    switchRoom(roomName.toLowerCase());
-}
-
-function switchRoom(roomName) {
-    currentRoom = roomName;
-    document.querySelectorAll('.room-item').forEach(item => 
-        item.classList.remove('selected')
-    );
-    const targetRoom = document.querySelector(`[data-room="${roomName}"]`);
-    if (targetRoom) targetRoom.classList.add('selected');
-    updateChat();
-    console.log('Switched to room:', roomName);
-}
-
-
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.room-item[data-room]').forEach(item => {
-        item.draggable = !item.classList.contains('general');
-        item.onclick = (e) => { e.stopPropagation(); switchRoom(item.dataset.room); };
-    });
-    initDragAndDrop();
-});
 
 function createParticle() {
     const particle = document.createElement('div');
@@ -227,7 +339,6 @@ function getCurrentUser() {
 }
 
 function updateChat() {
-
     fetch(`/chat_history?room=${currentRoom}`)
     .then(r => r.json())
     .then(data => {
@@ -299,14 +410,19 @@ document.getElementById('input').addEventListener('keypress', e => {
     if (e.key === 'Enter') sendMessage();
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+    initDragAndDrop();
+    loadUserRooms();
+    getCurrentUser();
+    updateChat();
+    updateStatus();
+    setInterval(loadUserRooms, 10000);
+});
+
 setInterval(() => {
     updateChat();
     updateStatus();
 }, 1000);
-
-getCurrentUser();
-updateChat();
-updateStatus();
 </script>
 </body>
 </html>
