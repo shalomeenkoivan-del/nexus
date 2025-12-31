@@ -2,23 +2,33 @@
 <html>
 <head><title>Nexus Chat</title>
 <style>
-body{font-family:monospace;background:#111;color:#0f0;padding:20px;}
-#chat{height:500px;overflow-y:scroll;border:2px solid #0f0;padding:15px;background:#000;margin-bottom:20px;}
+body{font-family:monospace;background:linear-gradient(45deg,#111,#000,#111);color:#0f0;padding:20px;position:relative;overflow:hidden;}
+body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(circle at 20% 80%,rgba(0,255,136,0.1) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(255,68,68,0.1) 0%,transparent 50%),radial-gradient(circle at 40% 40%,rgba(0,255,0,0.05) 0%,transparent 30%);animation:backgroundShift 10s ease-in-out infinite;z-index:-1;}
+#chat{height:500px;overflow-y:scroll;border:2px solid #0f0;box-shadow:0 0 40px #0f0, inset 0 0 20px rgba(0,255,0,0.1);padding:15px;background:linear-gradient(145deg,#000,#111);margin-bottom:20px;position:relative;overflow-x:hidden;}
+#chat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#0f0,#00ff88,transparent);animation:scanline 3s linear infinite;}
+#chat::-webkit-scrollbar{width:8px;}
+#chat::-webkit-scrollbar-track{background:#111;}
+#chat::-webkit-scrollbar-thumb{background:linear-gradient(#0f0,#00ff88);border-radius:4px;}
+#chat::-webkit-scrollbar-thumb:hover{background:linear-gradient(#00ff88,#0f0);}
 .input-row{display:flex;align-items:center;gap:10px;}
-#input{flex:1;padding:15px;background:#222;color:#0f0;border:2px solid #0f0;font-size:16px;}
-button{padding:15px 30px;background:#0f0;color:#000;border:none;cursor:pointer;font-size:16px;}
-#logout-btn{background:#f00;}
+#input{flex:1;padding:20px;background:linear-gradient(145deg,#222,#111);color:#0f0;border:2px solid #0f0;box-shadow:0 0 20px rgba(0,255,0,0.3);font-size:16px;font-family:monospace;transition:all 0.3s ease;}
+#input:focus{outline:none;box-shadow:0 0 30px #0f0,0 0 50px rgba(0,255,136,0.5);border-color:#00ff88;}
+button{padding:20px 30px;background:linear-gradient(145deg,#0f0,#00ff88);color:#000;border:none;cursor:pointer;font-size:16px;font-family:monospace;font-weight:bold;text-shadow:0 1px 2px #000;box-shadow:0 5px 15px rgba(0,255,0,0.4);transition:all 0.3s ease;position:relative;overflow:hidden;}
+button:hover{background:linear-gradient(145deg,#00ff88,#0f0);box-shadow:0 8px 25px rgba(0,255,136,0.6),0 0 40px rgba(0,255,0,0.5);transform:translateY(-2px);}
+button:active{transform:translateY(0);}
+#logout-btn{background:linear-gradient(145deg,#f00,#cc0000) !important;box-shadow:0 5px 15px rgba(255,0,0,0.4) !important;}
+#logout-btn:hover{background:linear-gradient(145deg,#cc0000,#f00) !important;box-shadow:0 8px 25px rgba(255,68,68,0.6),0 0 40px rgba(255,0,0,0.5) !important;}
 .message{margin:8px 0;font-size:15px;}
 .time{color:#888;}
-.system-msg{color:#00ff88;font-style:italic;font-weight:normal;}
-.my-message{color:#00ff00 !important; font-weight:bold;}
+.system-msg{color:#00ff88;font-style:italic;font-weight:normal;text-shadow:0 0 5px #00ff88;}
+.my-message{color:#00ff00 !important; font-weight:bold;text-shadow:0 0 8px #00ff00;}
 .my-message b{color:#00ff00 !important;}
 .other-message{color:#ffffff;}
 .other-message b{color:#cccccc;}
 .nyxx-message {
     color: #ff4444 !important; 
     font-weight: bold !important;
-    text-shadow: 0 0 5px #ff0000;
+    text-shadow: 0 0 10px #ff0000, 0 0 20px #ff4444;
 }
 .nyxx-message b {
     color: #ff6666 !important;
@@ -26,7 +36,7 @@ button{padding:15px 30px;background:#0f0;color:#000;border:none;cursor:pointer;f
 .nyxx-enter {
     color: #ff4444 !important;
     font-weight: bold !important;
-    text-shadow: 0 0 5px #ff0000;
+    text-shadow: 0 0 10px #ff0000, 0 0 20px #ff4444;
     font-style: italic;
 }
 .header-bar {
@@ -40,15 +50,26 @@ button{padding:15px 30px;background:#0f0;color:#000;border:none;cursor:pointer;f
     height: 60px;
     border-radius: 8px;
     border: 2px solid #0f0;
+    box-shadow: 0 0 20px rgba(0,255,0,0.5);
     flex-shrink: 0;
+    transition: all 0.3s ease;
 }
+.header-avatar:hover{box-shadow:0 0 30px rgba(0,255,136,0.8),0 0 40px rgba(0,255,0,0.6);}
 .header-info {
     flex: 1;
     min-width: 0;
 }
 h1 {
     margin: 0 0 5px 0;
-    font-size: 24px;
+    font-size: 2.8rem;
+    font-weight: 900;
+    background: linear-gradient(45deg,#0f0,#00ff88,#0f0);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: glowText 2s ease-in-out infinite alternate, shimmer 3s linear infinite;
+    text-shadow: 0 0 30px #0f0;
 }
 #status-text {
     color: #888;
@@ -58,10 +79,21 @@ h1 {
     padding: 0;
     background: none;
     border: none;
+    text-shadow: 0 0 10px #00ff88;
 }
+.particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;overflow:hidden;}
+.particle{position:absolute;background:#0f0;border-radius:50%;animation:floatParticle 8s infinite linear;}
+@keyframes glowText{0%{filter:drop-shadow(0 0 10px #0f0);}100%{filter:drop-shadow(0 0 30px #0f0) drop-shadow(0 0 50px #00ff88);}}
+@keyframes shimmer{0%,100%{background-position:0% 50%;}50%{background-position:100% 50%;}}
+@keyframes scanline{0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
+@keyframes backgroundShift{0%,100%{background-position:0% 50%,50% 50%,20% 80%;}50%{background-position:100% 50%,100% 50%,80% 20%;}}
+@keyframes floatParticle{0%{transform:translateY(100vh) rotate(0deg);opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{transform:translateY(-100px) rotate(360deg);opacity:0;}}
 </style>
 </head>
 <body>
+
+<div class="particles" id="particles"></div>
+
 <div class="header-bar">
     <img id="status-avatar" class="header-avatar" 
          src="/data/images/avatar.png" 
@@ -84,6 +116,18 @@ h1 {
 let chat = document.getElementById('chat');
 let MY_USERNAME = null;
 
+function createParticle() {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.width = particle.style.height = (Math.random() * 4 + 1) + 'px';
+    particle.style.animationDuration = (Math.random() * 3 + 5) + 's';
+    particle.style.animationDelay = Math.random() * 2 + 's';
+    document.getElementById('particles').appendChild(particle);
+    setTimeout(() => particle.remove(), 9000);
+}
+setInterval(createParticle, 200);
+
 function getCurrentUser() {
     fetch('/current_user')
     .then(r => r.json())
@@ -96,6 +140,9 @@ function updateChat() {
     fetch('/chat_history')
     .then(r => r.json())
     .then(data => {
+        // ✅ САХРАНЯЕМ ПОЗИЦИЮ СКРОЛЛА
+        const wasAtBottom = chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 20;
+        
         chat.innerHTML = '';
         data.history.forEach(msg => {
             let div = document.createElement('div');
@@ -119,7 +166,10 @@ function updateChat() {
             }
             chat.appendChild(div);
         });
-        chat.scrollTop = chat.scrollHeight;
+        
+        if (wasAtBottom) {
+            chat.scrollTop = chat.scrollHeight;
+        }
     });
 }
 
@@ -135,7 +185,7 @@ function updateStatus() {
             avatar.onerror = () => {
                 avatar.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMzAiIGZpbGw9IiNmZjQ0NDQiLz4KPHRleHQgeD0iMzAiIHk9IjM2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjI0IiBmaWxsPSIjZmYwMDAwIj5OPC90ZXh0Pgo8L3N2Zz4K';
             };
-            text.innerHTML = `Entered the Shadow as: 🔥 NYXX | Online: ${data.online_users}`;
+            text.innerHTML = `Entered the Shadow as: NYXX | Online: ${data.online_users}`;
         } else {
             avatar.src = '/data/images/avatar.png?' + Date.now();
             avatar.onerror = () => {
