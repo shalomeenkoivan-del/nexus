@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head><title>Nexus Chat</title>
+<style>
+body{font-family:monospace;background:#111;color:#0f0;padding:20px;}
+#chat{height:500px;overflow-y:scroll;border:2px solid #0f0;padding:15px;background:#000;margin-bottom:20px;}
+.input-row{display:flex;align-items:center;gap:10px;}
+#input{flex:1;padding:15px;background:#222;color:#0f0;border:2px solid #0f0;font-size:16px;}
+button{padding:15px 30px;background:#0f0;color:#000;border:none;cursor:pointer;font-size:16px;}
+#logout-btn{background:#f00;}
+.message{margin:8px 0;font-size:15px;}
+.time{color:#888;}
+.system-msg{color:#00ff88;font-style:italic;font-weight:normal;}
+.my-message{color:#00ff00 !important; font-weight:bold;}
+.my-message b{color:#00ff00 !important;}
+.other-message{color:#ffffff;}
+.other-message b{color:#cccccc;}
+.nyxx-message {
+    color: #ff4444 !important; 
+    font-weight: bold !important;
+    text-shadow: 0 0 5px #ff0000;
+}
+.nyxx-message b {
+    color: #ff6666 !important;
+}
+.nyxx-enter {
+    color: #ff4444 !important;
+    font-weight: bold !important;
+    text-shadow: 0 0 5px #ff0000;
+    font-style: italic;
+}
+
+.header-container {margin-bottom:20px;}
+h1 {margin:0 0 5px 0;}
+#status {
+    color:#888;font-weight:bold;padding:8px 15px;
+    background:#000;border:1px solid #0f0;
+    text-align:left;
+    margin:0;
+}
+</style>
+</head>
+<body>
+
+<div class="header-container">
+    <h1>Nexus Chat</h1>
+    <div id="status">Loading...</div>
+</div>
+
+<div id="chat"></div>
+
+<div class="input-row">
+    <input type="text" id="input" placeholder="Type your message..." autofocus>
+    <button onclick="sendMessage()">Send</button>
+    <button id="logout-btn" onclick="logout()">Log out</button>
+</div>
+
+<script>
+let chat = document.getElementById('chat');
+let MY_USERNAME = null;
+
+function getCurrentUser() {
+    fetch('/current_user')
+    .then(r => r.json())
+    .then(data => {
+        MY_USERNAME = data.username;
+    });
+}
+
+function updateChat() {
+    fetch('/chat_history')
+    .then(r => r.json())
+    .then(data => {
+        chat.innerHTML = '';
+        data.history.forEach(msg => {
+            let div = document.createElement('div');
+            
+            if (msg.system) {
+                if (msg.message.includes('NYXX(MASTER)')) {
+                    div.className = 'message nyxx-enter';
+                    div.innerHTML = `<span class="time">[${msg.time}]</span> ${msg.message}`;
+                } else {
+                    div.className = 'message system-msg';
+                    div.innerHTML = `<span class="time">[${msg.time}]</span> ${msg.message}`;
+                }
+            } else if (msg.user === MY_USERNAME) {
+                div.className = 'message my-message';
+                div.innerHTML = `<span class="time">[${msg.time}]</span> <b>${msg.user}:</b> ${msg.message}`;
+            } else if (msg.user === "NYXX") {
+                div.className = 'message nyxx-message';
+                div.innerHTML = `<span class="time">[${msg.time}]</span> <b>🔥${msg.user}:</b> ${msg.message}`;
+            } else {
+                div.className = 'message other-message';
+                div.innerHTML = `<span class="time">[${msg.time}]</span> <b>${msg.user}:</b> ${msg.message}`;
+            }
+            
+            chat.appendChild(div);
+        });
+        chat.scrollTop = chat.scrollHeight;
+    });
+}
+
+function updateStatus() {
+    fetch('/status')
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('status').innerHTML = 
+            `Entered the Shadow as: ${data.current_user} | Online: ${data.online_users}`;
+    });
+}
+
+function sendMessage() {
+    let message = document.getElementById('input').value.trim();
+    if (!message) return;
+    
+    fetch('/chat_send', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message})
+    });
+    document.getElementById('input').value = '';
+}
+
+function logout() {
+    fetch('/command', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({command: 'exit'})
+    })
+    .then(() => {
+        window.location.href = '/';
+    });
+}
+
+document.getElementById('input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') sendMessage();
+});
+
+setInterval(() => {
+    updateChat();
+    updateStatus();
+}, 1000);
+
+getCurrentUser();
+updateChat();
+updateStatus();
+</script>
+</body>
+</html>
