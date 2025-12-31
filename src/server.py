@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, send_from_directory
 from main import ip
 import secrets
 from datetime import datetime
@@ -134,9 +134,17 @@ def console_status():
     user_files = [f for f in os.listdir('data/users') if f.endswith('.json')]
     return jsonify({'total_users': len(user_files)})
 
+@app.route('/data/images/<path:filename>')
+def serve_images(filename):
+    return send_from_directory('data/images', filename)
+
 if __name__ == '__main__':
     os.makedirs('data/users', exist_ok=True)
     os.makedirs('data/images', exist_ok=True)
     os.makedirs('templates', exist_ok=True)
+    
+    app.static_folder = 'data/images'
+    app.static_url_path = '/data/images'
+    
     print(f"Shadows: {ip}:5000")
     app.run(host=ip, port=5000, debug=True, threaded=True)

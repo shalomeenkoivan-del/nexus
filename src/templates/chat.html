@@ -29,22 +29,47 @@ button{padding:15px 30px;background:#0f0;color:#000;border:none;cursor:pointer;f
     text-shadow: 0 0 5px #ff0000;
     font-style: italic;
 }
-
-.header-container {margin-bottom:20px;}
-h1 {margin:0 0 5px 0;}
-#status {
-    color:#888;font-weight:bold;padding:8px 15px;
-    background:#000;border:1px solid #0f0;
-    text-align:left;
-    margin:0;
+.header-bar {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+.header-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    border: 2px solid #0f0;
+    flex-shrink: 0;
+}
+.header-info {
+    flex: 1;
+    min-width: 0;
+}
+h1 {
+    margin: 0 0 5px 0;
+    font-size: 24px;
+}
+#status-text {
+    color: #888;
+    font-weight: bold;
+    font-size: 14px;
+    margin: 0;
+    padding: 0;
+    background: none;
+    border: none;
 }
 </style>
 </head>
 <body>
-
-<div class="header-container">
-    <h1>Nexus Chat</h1>
-    <div id="status">Loading...</div>
+<div class="header-bar">
+    <img id="status-avatar" class="header-avatar" 
+         src="/data/images/avatar.png" 
+         alt="Avatar">
+    <div class="header-info">
+        <h1>Nexus Chat</h1>
+        <div id="status-text">Loading...</div>
+    </div>
 </div>
 
 <div id="chat"></div>
@@ -74,7 +99,6 @@ function updateChat() {
         chat.innerHTML = '';
         data.history.forEach(msg => {
             let div = document.createElement('div');
-            
             if (msg.system) {
                 if (msg.message.includes('NYXX(MASTER)')) {
                     div.className = 'message nyxx-enter';
@@ -88,12 +112,11 @@ function updateChat() {
                 div.innerHTML = `<span class="time">[${msg.time}]</span> <b>${msg.user}:</b> ${msg.message}`;
             } else if (msg.user === "NYXX") {
                 div.className = 'message nyxx-message';
-                div.innerHTML = `<span class="time">[${msg.time}]</span> <b>🔥${msg.user}:</b> ${msg.message}`;
+                div.innerHTML = `<span class="time">[${msg.time}]</span> <b>${msg.user}:</b> ${msg.message}`;
             } else {
                 div.className = 'message other-message';
                 div.innerHTML = `<span class="time">[${msg.time}]</span> <b>${msg.user}:</b> ${msg.message}`;
             }
-            
             chat.appendChild(div);
         });
         chat.scrollTop = chat.scrollHeight;
@@ -104,15 +127,28 @@ function updateStatus() {
     fetch('/status')
     .then(r => r.json())
     .then(data => {
-        document.getElementById('status').innerHTML = 
-            `Entered the Shadow as: ${data.current_user} | Online: ${data.online_users}`;
+        let avatar = document.getElementById('status-avatar');
+        let text = document.getElementById('status-text');
+        
+        if (data.current_user === 'NYXX') {
+            avatar.src = '/data/images/nyxx.png?' + Date.now();
+            avatar.onerror = () => {
+                avatar.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMzAiIGZpbGw9IiNmZjQ0NDQiLz4KPHRleHQgeD0iMzAiIHk9IjM2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjI0IiBmaWxsPSIjZmYwMDAwIj5OPC90ZXh0Pgo8L3N2Zz4K';
+            };
+            text.innerHTML = `Entered the Shadow as: 🔥 NYXX | Online: ${data.online_users}`;
+        } else {
+            avatar.src = '/data/images/avatar.png?' + Date.now();
+            avatar.onerror = () => {
+                avatar.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMzAiIGZpbGw9IiMzMzMiLz4KPHRleHQgeD0iMzAiIHk9IjM2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjI0IiBmaWxsPSIjMGYwIj5BPC90ZXh0Pgo8L3N2Zz4K';
+            };
+            text.innerHTML = `Entered the Shadow as: ${data.current_user} | Online: ${data.online_users}`;
+        }
     });
 }
 
 function sendMessage() {
     let message = document.getElementById('input').value.trim();
     if (!message) return;
-    
     fetch('/chat_send', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -126,13 +162,10 @@ function logout() {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({command: 'exit'})
-    })
-    .then(() => {
-        window.location.href = '/';
-    });
+    }).then(() => window.location.href = '/');
 }
 
-document.getElementById('input').addEventListener('keypress', function(e) {
+document.getElementById('input').addEventListener('keypress', e => {
     if (e.key === 'Enter') sendMessage();
 });
 
