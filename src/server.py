@@ -9,7 +9,8 @@ app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
 core = Core()
 
-chat_history = []
+rooms = ["general"]
+chat_rooms = {"general": []}
 active_sessions = set()
 
 @app.route('/')
@@ -35,7 +36,7 @@ def command():
         session['username'] = "NYXX"
         active_sessions.add("NYXX_MASTER")
         timestamp = datetime.now().strftime("%H:%M:%S")
-        chat_history.append({
+        chat_rooms["general"].append({
             "user": "SYSTEM", "user_id": "SYSTEM",
             "message": "NYXX(MASTER) entered the Shadows!", "time": timestamp, "system": True
         })
@@ -72,7 +73,7 @@ def command():
             session['username'] = user_data['username']
             active_sessions.add(user_data['user_id'])
             timestamp = datetime.now().strftime("%H:%M:%S")
-            chat_history.append({
+            chat_rooms["general"].append({
                 "user": "SYSTEM", "user_id": "SYSTEM",
                 "message": f"{user_data['username']} entered the Shadows!", "time": timestamp, "system": True
             })
@@ -83,7 +84,7 @@ def command():
     if session.get('logged_in') and cmd == "exit":
         user_id = session.get('user_id')
         timestamp = datetime.now().strftime("%H:%M:%S")
-        chat_history.append({
+        chat_rooms["general"].append({
             "user": "SYSTEM", "user_id": "SYSTEM",
             "message": f"{session.get('username')} left the Shadows", "time": timestamp, "system": True
         })
@@ -94,26 +95,66 @@ def command():
 
     return jsonify({'output': 'Commands: register / login [seed phrase]'})
 
+@app.route('/add_room', methods=['POST'])
+def add_room():
+    if not session.get('logged_in'):
+        return jsonify({'success': False, 'message': 'Login first!'})
+    
+    data = request.json
+    room_name = data.get('room', '').strip().lower()
+    
+    if not room_name or room_name == 'general':
+        return jsonify({'success': False, 'message': 'Invalid room name'})
+    
+    if room_name in rooms:
+        return jsonify({'success': True, 'message': f'Joined existing room: {room_name}'})
+    
+    rooms.append(room_name)
+    chat_rooms[room_name] = []
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    chat_rooms[room_name].append({
+        "user": "SYSTEM", "user_id": "SYSTEM",
+        "message": f"Room '{room_name}' created by {session['username']}", 
+        "time": timestamp, "system": True
+    })
+    
+    return jsonify({
+        'success': True, 
+        'message': f'Room "{room_name}" created!',
+        'rooms': rooms
+    })
+
+@app.route('/rooms')
+def get_rooms():
+    return jsonify({'rooms': rooms})
+
+@app.route('/chat_history')
+def chat_history_route():
+    room = request.args.get('room', 'general')
+    history = chat_rooms.get(room, [])[-50:]
+    return jsonify({'history': history})
+
 @app.route('/chat_send', methods=['POST'])
 def chat_send():
     if not session.get('logged_in'):
         return jsonify({'error': 'Login first!'})
+    
     data = request.json
     message = data.get('message', '').strip()
-    if message:
+    room = data.get('room', 'general').lower()
+    
+    if message and room in chat_rooms:
         timestamp = datetime.now().strftime("%H:%M:%S")
-        chat_history.append({
+        chat_rooms[room].append({
             "user": session['username'],
             "user_id": session['user_id'],
             "message": message,
             "time": timestamp,
             "system": False
         })
-    return jsonify({'status': 'ok'})
-
-@app.route('/chat_history')
-def chat_history_route():
-    return jsonify({'history': chat_history[-50:]})
+        return jsonify({'status': 'ok'})
+    
+    return jsonify({'error': 'Room not found'})
 
 @app.route('/current_user')
 def current_user():
@@ -124,7 +165,7 @@ def status():
     return jsonify({
         'current_user': session.get('username', 'Guest'),
         'online_users': len(active_sessions),
-        'total_messages': len(chat_history)
+        'total_messages': sum(len(messages) for messages in chat_rooms.values())
     })
 
 @app.route('/console_status')
@@ -147,4 +188,5 @@ if __name__ == '__main__':
     app.static_url_path = '/data/images'
     
     print(f"Shadows: {ip}:5000")
+    print("✅ ROOMS SYSTEM: general + dynamic rooms!")
     app.run(host=ip, port=5000, debug=True, threaded=True)

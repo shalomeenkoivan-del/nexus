@@ -4,13 +4,18 @@
 <style>
 body{font-family:monospace;background:linear-gradient(45deg,#111,#000,#111);color:#0f0;padding:20px;position:relative;overflow:hidden;}
 body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(circle at 20% 80%,rgba(0,255,136,0.1) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(255,68,68,0.1) 0%,transparent 50%),radial-gradient(circle at 40% 40%,rgba(0,255,0,0.05) 0%,transparent 30%);animation:backgroundShift 10s ease-in-out infinite;z-index:-1;}
-#chat{height:500px;overflow-y:scroll;border:2px solid #0f0;box-shadow:0 0 40px #0f0, inset 0 0 20px rgba(0,255,0,0.1);padding:15px;background:linear-gradient(145deg,#000,#111);margin-bottom:20px;position:relative;overflow-x:hidden;}
+.particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;overflow:hidden;}
+.particle{position:absolute;background:#0f0;border-radius:50%;animation:floatParticle 8s infinite linear;}
+.container{display:flex;height:calc(100vh - 60px);gap:10px;padding:10px;}
+.chat-container{flex:3;display:flex;flex-direction:column;border:2px solid #0f0;box-shadow:0 0 40px #0f0,inset 0 0 20px rgba(0,255,0,0.1);background:linear-gradient(145deg,#000,#111);overflow:hidden;position:relative;}
+#chat{flex:1;overflow-y:scroll;border:none;box-shadow:none;padding:15px;background:transparent;margin:0;position:relative;overflow-x:hidden;}
 #chat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#0f0,#00ff88,transparent);animation:scanline 3s linear infinite;}
 #chat::-webkit-scrollbar{width:8px;}
 #chat::-webkit-scrollbar-track{background:#111;}
 #chat::-webkit-scrollbar-thumb{background:linear-gradient(#0f0,#00ff88);border-radius:4px;}
 #chat::-webkit-scrollbar-thumb:hover{background:linear-gradient(#00ff88,#0f0);}
-.input-row{display:flex;align-items:center;gap:10px;}
+.separator-line{height:2px;background:linear-gradient(90deg,transparent,#0f0,#00ff88,transparent);margin:15px 0;animation:scanline 3s linear infinite;}
+.input-row{display:flex;align-items:center;gap:10px;padding:15px;background:rgba(0,0,0,0.3);border-top:1px solid #0f0;}
 #input{flex:1;padding:20px;background:linear-gradient(145deg,#222,#111);color:#0f0;border:2px solid #0f0;box-shadow:0 0 20px rgba(0,255,0,0.3);font-size:16px;font-family:monospace;transition:all 0.3s ease;}
 #input:focus{outline:none;box-shadow:0 0 30px #0f0,0 0 50px rgba(0,255,136,0.5);border-color:#00ff88;}
 button{padding:20px 30px;background:linear-gradient(145deg,#0f0,#00ff88);color:#000;border:none;cursor:pointer;font-size:16px;font-family:monospace;font-weight:bold;text-shadow:0 1px 2px #000;box-shadow:0 5px 15px rgba(0,255,0,0.4);transition:all 0.3s ease;position:relative;overflow:hidden;}
@@ -21,100 +26,187 @@ button:active{transform:translateY(0);}
 .message{margin:8px 0;font-size:15px;}
 .time{color:#888;}
 .system-msg{color:#00ff88;font-style:italic;font-weight:normal;text-shadow:0 0 5px #00ff88;}
-.my-message{color:#00ff00 !important; font-weight:bold;text-shadow:0 0 8px #00ff00;}
+.my-message{color:#00ff00 !important;font-weight:bold;text-shadow:0 0 8px #00ff00;}
 .my-message b{color:#00ff00 !important;}
 .other-message{color:#ffffff;}
 .other-message b{color:#cccccc;}
-.nyxx-message {
-    color: #ff4444 !important; 
-    font-weight: bold !important;
-    text-shadow: 0 0 10px #ff0000, 0 0 20px #ff4444;
-}
-.nyxx-message b {
-    color: #ff6666 !important;
-}
-.nyxx-enter {
-    color: #ff4444 !important;
-    font-weight: bold !important;
-    text-shadow: 0 0 10px #ff0000, 0 0 20px #ff4444;
-    font-style: italic;
-}
-.header-bar {
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-.header-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 8px;
-    border: 2px solid #0f0;
-    box-shadow: 0 0 20px rgba(0,255,0,0.5);
-    flex-shrink: 0;
-    transition: all 0.3s ease;
-}
+.nyxx-message{color:#ff4444 !important;font-weight:bold !important;text-shadow:0 0 10px #ff0000,0 0 20px #ff4444;}
+.nyxx-message b{color:#ff6666 !important;}
+.nyxx-enter{color:#ff4444 !important;font-weight:bold !important;text-shadow:0 0 10px #ff0000,0 0 20px #ff4444;font-style:italic;}
+.header-bar{display:flex;align-items:center;gap:15px;padding:10px 15px;border-bottom:1px solid #0f0;background:rgba(0,0,0,0.3);}
+.header-avatar{width:60px;height:60px;border-radius:8px;border:2px solid #0f0;box-shadow:0 0 20px rgba(0,255,0,0.5);flex-shrink:0;transition:all 0.3s ease;}
 .header-avatar:hover{box-shadow:0 0 30px rgba(0,255,136,0.8),0 0 40px rgba(0,255,0,0.6);}
-.header-info {
-    flex: 1;
-    min-width: 0;
-}
-h1 {
-    margin: 0 0 5px 0;
-    font-size: 2.8rem;
-    font-weight: 900;
-    background: linear-gradient(45deg,#0f0,#00ff88,#0f0);
-    background-size: 300% 300%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: glowText 2s ease-in-out infinite alternate, shimmer 3s linear infinite;
-    text-shadow: 0 0 30px #0f0;
-}
-#status-text {
-    color: #888;
-    font-weight: bold;
-    font-size: 14px;
-    margin: 0;
-    padding: 0;
-    background: none;
-    border: none;
-    text-shadow: 0 0 10px #00ff88;
-}
-.particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;overflow:hidden;}
-.particle{position:absolute;background:#0f0;border-radius:50%;animation:floatParticle 8s infinite linear;}
+.header-title{flex:1;display:flex;flex-direction:column;}
+h1{margin:0;font-size:2.2rem;font-weight:900;background:linear-gradient(45deg,#0f0,#00ff88,#0f0);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:glowText 2s ease-in-out infinite alternate,shimmer 3s linear infinite;text-shadow:0 0 20px #0f0;}
+#status-text{color:#ffffff !important;font-weight:bold !important;font-size:13px;margin:0;padding:0;background:none;border:none;text-shadow:0 0 5px #ffffff;}
+.rooms-panel{flex:1;border:2px solid #0f0;box-shadow:0 0 40px #0f0,inset 0 0 20px rgba(0,255,0,0.1);background:linear-gradient(145deg,#000,#111);display:flex;flex-direction:column;overflow:hidden;position:relative;}
+.rooms-header{color:#00ff88;font-weight:bold;padding:15px;background:linear-gradient(145deg,rgba(0,255,136,0.1),transparent);border-bottom:2px solid #0f0;text-shadow:0 0 10px #00ff88;font-size:16px;}
+.rooms-list{flex:1;padding:15px;overflow-y:auto;}
+.room-item{padding:12px 15px;margin:8px 0;border-radius:6px;cursor:pointer;transition:all 0.3s ease;color:#0f0;font-family:monospace;font-size:14px;text-shadow:0 0 5px #0f0;background:rgba(0,255,0,0.08);border:1px solid rgba(0,255,0,0.3);user-select:none;}
+.room-item:hover{background:rgba(0,255,136,0.2);border-color:#00ff88;box-shadow:0 0 15px rgba(0,255,0,0.4);transform:translateX(3px);}
+.room-item.general{background:linear-gradient(145deg,#00ff88,#0f0);color:#000;border:2px solid #00ff88;font-weight:bold;text-shadow:none;box-shadow:0 0 20px rgba(0,255,136,0.6);position:sticky;top:0;z-index:10;}
+.room-item.general:hover{background:linear-gradient(145deg,#0f0,#00ff88) !important;transform:none !important;}
+.room-item.selected{background:linear-gradient(145deg,#ff4444,#cc0000);color:#fff;border:1px solid #ff6666;text-shadow:0 0 8px #ff4444;font-weight:bold;}
+.room-item.add-room{background:linear-gradient(145deg,rgba(0,255,136,0.2),rgba(0,255,0,0.1));color:#00ff88;font-size:24px;font-weight:bold;text-align:center;line-height:1.2;border:2px solid #00ff88;text-shadow:0 0 10px #00ff88;}
+.room-item.dragging{opacity:0.5;transform:rotate(5deg);}
+.room-item.drag-over{background:rgba(255,68,68,0.3) !important;border-color:#ff4444 !important;}
+.rooms-list::-webkit-scrollbar{width:6px;}
+.rooms-list::-webkit-scrollbar-track{background:#111;}
+.rooms-list::-webkit-scrollbar-thumb{background:linear-gradient(#0f0,#00ff88);border-radius:3px;}
+.rooms-list::-webkit-scrollbar-thumb:hover{background:linear-gradient(#00ff88,#0f0);}
 @keyframes glowText{0%{filter:drop-shadow(0 0 10px #0f0);}100%{filter:drop-shadow(0 0 30px #0f0) drop-shadow(0 0 50px #00ff88);}}
-@keyframes shimmer{0%,100%{background-position:0% 50%;}50%{background-position:100% 50%;}}
-@keyframes scanline{0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
-@keyframes backgroundShift{0%,100%{background-position:0% 50%,50% 50%,20% 80%;}50%{background-position:100% 50%,100% 50%,80% 20%;}}
-@keyframes floatParticle{0%{transform:translateY(100vh) rotate(0deg);opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{transform:translateY(-100px) rotate(360deg);opacity:0;}}
+@keyframes shimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes scanline{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@keyframes backgroundShift{0%,100%{background-position:0% 50%,50% 50%,20% 80%}50%{background-position:100% 50%,100% 50%,80% 20%}}
+@keyframes floatParticle{0%{transform:translateY(100vh) rotate(0deg);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-100px) rotate(360deg);opacity:0}}
 </style>
 </head>
 <body>
-
 <div class="particles" id="particles"></div>
 
-<div class="header-bar">
-    <img id="status-avatar" class="header-avatar" 
-         src="/data/images/avatar.png" 
-         alt="Avatar">
-    <div class="header-info">
-        <h1>Nexus Chat</h1>
-        <div id="status-text">Loading...</div>
+<div class="container">
+    <div class="chat-container">
+        <div class="header-bar">
+            <img id="status-avatar" class="header-avatar" src="/data/images/avatar.png" alt="Avatar">
+            <div class="header-title">
+                <h1>Nexus Chat</h1>
+                <div id="status-text">Loading...</div>
+            </div>
+        </div>
+        <div id="chat"></div>
+        <div class="separator-line"></div>
+        <div class="input-row">
+            <input type="text" id="input" placeholder="Type your message..." autofocus>
+            <button onclick="sendMessage()">Send</button>
+            <button id="logout-btn" onclick="logout()">Log out</button>
+        </div>
     </div>
-</div>
 
-<div id="chat"></div>
-
-<div class="input-row">
-    <input type="text" id="input" placeholder="Type your message..." autofocus>
-    <button onclick="sendMessage()">Send</button>
-    <button id="logout-btn" onclick="logout()">Log out</button>
+    <div class="rooms-panel">
+        <div class="rooms-header">ROOMS</div>
+        <div class="rooms-list" id="rooms-list">
+            <div class="room-item general selected" data-room="general">general</div>
+            <div class="room-item add-room" onclick="showAddRoom()">+</div>
+        </div>
+    </div>
 </div>
 
 <script>
 let chat = document.getElementById('chat');
 let MY_USERNAME = null;
+let currentRoom = 'general';
+let draggedItem = null;
+
+function initDragAndDrop() {
+    const roomsList = document.getElementById('rooms-list');
+    
+    roomsList.addEventListener('dragstart', e => {
+        const item = e.target.closest('.room-item');
+        if (item && !item.classList.contains('general')) {
+            draggedItem = item;
+            item.classList.add('dragging');
+        } else {
+            e.preventDefault();
+        }
+    });
+    
+    roomsList.addEventListener('dragend', e => {
+        if (draggedItem) {
+            draggedItem.classList.remove('dragging');
+            draggedItem = null;
+        }
+        document.querySelectorAll('.room-item.drag-over').forEach(item => 
+            item.classList.remove('drag-over')
+        );
+    });
+    
+    roomsList.addEventListener('dragover', e => {
+        e.preventDefault();
+        const item = e.target.closest('.room-item');
+        if (item && !item.classList.contains('general') && draggedItem !== item) {
+            item.classList.add('drag-over');
+        }
+    });
+    
+    roomsList.addEventListener('dragleave', e => {
+        const item = e.target.closest('.room-item');
+        if (item) item.classList.remove('drag-over');
+    });
+    
+    roomsList.addEventListener('drop', e => {
+        e.preventDefault();
+        const dropTarget = e.target.closest('.room-item');
+        if (dropTarget && draggedItem && !dropTarget.classList.contains('general')) {
+            const roomsList = document.getElementById('rooms-list');
+            if (dropTarget.nextSibling) {
+                roomsList.insertBefore(draggedItem, dropTarget.nextSibling);
+            } else {
+                roomsList.insertBefore(draggedItem, dropTarget);
+            }
+        }
+    });
+}
+
+function showAddRoom() {
+    let roomName = prompt('Enter room name or username:');
+    if (roomName && roomName.toLowerCase() !== 'general') {
+        fetch('/add_room', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({room: roomName})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                addRoom(roomName);
+                console.log(data.message);
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error('Error:', err));
+    } else if (roomName && roomName.toLowerCase() === 'general') {
+        alert('general всегда наверху! 😎');
+    }
+}
+
+function addRoom(roomName) {
+    const roomsList = document.getElementById('rooms-list');
+    let existing = Array.from(roomsList.children).find(item => 
+        item.dataset.room === roomName.toLowerCase() && !item.classList.contains('general')
+    );
+    if (!existing) {
+        const roomItem = document.createElement('div');
+        roomItem.className = 'room-item';
+        roomItem.draggable = true;
+        roomItem.dataset.room = roomName.toLowerCase();
+        roomItem.textContent = roomName;
+        roomItem.onclick = (e) => { e.stopPropagation(); switchRoom(roomName.toLowerCase()); };
+        const addButton = roomsList.querySelector('.add-room');
+        roomsList.insertBefore(roomItem, addButton);
+    }
+    switchRoom(roomName.toLowerCase());
+}
+
+function switchRoom(roomName) {
+    currentRoom = roomName;
+    document.querySelectorAll('.room-item').forEach(item => 
+        item.classList.remove('selected')
+    );
+    const targetRoom = document.querySelector(`[data-room="${roomName}"]`);
+    if (targetRoom) targetRoom.classList.add('selected');
+    updateChat();
+    console.log('Switched to room:', roomName);
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.room-item[data-room]').forEach(item => {
+        item.draggable = !item.classList.contains('general');
+        item.onclick = (e) => { e.stopPropagation(); switchRoom(item.dataset.room); };
+    });
+    initDragAndDrop();
+});
 
 function createParticle() {
     const particle = document.createElement('div');
@@ -129,20 +221,17 @@ function createParticle() {
 setInterval(createParticle, 200);
 
 function getCurrentUser() {
-    fetch('/current_user')
-    .then(r => r.json())
-    .then(data => {
+    fetch('/current_user').then(r => r.json()).then(data => {
         MY_USERNAME = data.username;
     });
 }
 
 function updateChat() {
-    fetch('/chat_history')
+
+    fetch(`/chat_history?room=${currentRoom}`)
     .then(r => r.json())
     .then(data => {
-        // ✅ САХРАНЯЕМ ПОЗИЦИЮ СКРОЛЛА
         const wasAtBottom = chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 20;
-        
         chat.innerHTML = '';
         data.history.forEach(msg => {
             let div = document.createElement('div');
@@ -166,31 +255,21 @@ function updateChat() {
             }
             chat.appendChild(div);
         });
-        
-        if (wasAtBottom) {
-            chat.scrollTop = chat.scrollHeight;
-        }
+        if (wasAtBottom) chat.scrollTop = chat.scrollHeight;
     });
 }
 
 function updateStatus() {
-    fetch('/status')
-    .then(r => r.json())
-    .then(data => {
+    fetch('/status').then(r => r.json()).then(data => {
         let avatar = document.getElementById('status-avatar');
         let text = document.getElementById('status-text');
-        
         if (data.current_user === 'NYXX') {
             avatar.src = '/data/images/nyxx.png?' + Date.now();
-            avatar.onerror = () => {
-                avatar.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMzAiIGZpbGw9IiNmZjQ0NDQiLz4KPHRleHQgeD0iMzAiIHk9IjM2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjI0IiBmaWxsPSIjZmYwMDAwIj5OPC90ZXh0Pgo8L3N2Zz4K';
-            };
+            avatar.onerror = () => avatar.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMzAiIGZpbGw9IiNmZjQ0NDQiLz4KPHRleHQgeD0iMzAiIHk9IjM2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjI0IiBmaWxsPSIjZmYwMDAwIj5OPC90ZXh0Pgo8L3N2Zz4K';
             text.innerHTML = `Entered the Shadow as: NYXX | Online: ${data.online_users}`;
         } else {
             avatar.src = '/data/images/avatar.png?' + Date.now();
-            avatar.onerror = () => {
-                avatar.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMzAiIGZpbGw9IiMzMzMiLz4KPHRleHQgeD0iMzAiIHk9IjM2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjI0IiBmaWxsPSIjMGYwIj5BPC90ZXh0Pgo8L3N2Zz4K';
-            };
+            avatar.onerror = () => avatar.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMzAiIGZpbGw9IiMzMzMiLz4KPHRleHQgeD0iMzAiIHk9IjM2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjI0IiBmaWxsPSIjMGYwIj5BPC90ZXh0Pgo8L3N2Zz4K';
             text.innerHTML = `Entered the Shadow as: ${data.current_user} | Online: ${data.online_users}`;
         }
     });
@@ -199,10 +278,11 @@ function updateStatus() {
 function sendMessage() {
     let message = document.getElementById('input').value.trim();
     if (!message) return;
+
     fetch('/chat_send', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({message})
+        body: JSON.stringify({message: message, room: currentRoom})
     });
     document.getElementById('input').value = '';
 }
