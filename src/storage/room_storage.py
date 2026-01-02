@@ -23,3 +23,17 @@ class RoomStorage:
     
     def save_global_chat_rooms(self, chat_rooms: Dict[str, List[Dict[str, Any]]]) -> None:
         self.global_file_storage.save("global_chat_rooms.json", chat_rooms)
+
+    def load_global_room_names(self) -> List[str]:
+        names = self.global_file_storage.load("global_room_names.json")
+        if not names:
+            return ["general"]
+        if "general" not in names:
+            names.insert(0, "general")
+        return names
+
+    def save_global_room_names(self, names: List[str]) -> None:
+        names_set = set(names)
+        names_set.add("general")
+        final = ["general"] + [r for r in names if r != "general"]
+        self.global_file_storage.save("global_room_names.json", final)

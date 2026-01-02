@@ -8,6 +8,7 @@ from ip_config import get_server_ip
 from config import DIRS, TEMPLATES_DIR
 from services import AuthService, Crypto
 from storage import RoomStorage
+from typing import List
 
 app = Flask(__name__, template_folder=str(TEMPLATES_DIR))
 app.secret_key = secrets.token_hex(32)
@@ -31,6 +32,14 @@ def load_user_rooms(user_id):
         with open(file_path, 'r') as f:
             return json.load(f)
     return ["general"]
+
+def get_all_visible_room_names(user_id: str) -> List[str]:
+    global_rooms = room_storage.load_global_room_names()
+    user_rooms = load_user_rooms(user_id)
+
+    personal_only = [r for r in user_rooms if r not in global_rooms]
+
+    return global_rooms + personal_only
 
 def save_user_rooms(user_id, user_rooms):
     file_path = get_user_rooms_file(user_id)
@@ -126,90 +135,179 @@ def command():
 def add_room():
     if not session.get('logged_in'):
         return jsonify({'success': False, 'message': 'Login first!'})
-    
+
     data = request.json
     room_name = data.get('room', '').strip().lower()
-    
+
     if not room_name or room_name == 'general':
         return jsonify({'success': False, 'message': 'Invalid room name'})
-    
+
     user_id = session['user_id']
-    user_rooms = load_user_rooms(user_id)
-    
-    if room_name not in user_rooms:
-        user_rooms.append(room_name)
-        save_user_rooms(user_id, user_rooms)
-    
-        if room_name not in chat_rooms:
-            chat_rooms[room_name] = []
-            timestamp = datetime.now().strftime("%H:%M:%S")
-            chat_rooms[room_name].append({
-                "user": "SYSTEM", "user_id": "SYSTEM",
-                "message": f"Room '{room_name}' created by {session['username']}", 
-                "time": timestamp, "system": True
-            })
-            room_storage.save_global_chat_rooms(chat_rooms)
-            return jsonify({
-                'success': True, 
-                'message': f'Room "{room_name}" created!',
-                'rooms': user_rooms,
-                'switch_to': room_name
-            })
-        else:
-            timestamp = datetime.now().strftime("%H:%M:%S")
-            chat_rooms[room_name].append({
-                "user": "SYSTEM", "user_id": "SYSTEM",
-                "message": f"{session['username']} joined room '{room_name}'", 
-                "time": timestamp, "system": True
-            })
-            room_storage.save_global_chat_rooms(chat_rooms)
-            return jsonify({
-                'success': True, 
-                'message': f'Joined existing room "{room_name}"!',
-                'rooms': user_rooms,
-                'switch_to': room_name
-            })
-    else:
+    username = session['username']
+    timestamp = datetime.now().strftime("%H:%M:%S")
+
+    if user_id == "NYXX_MASTER":
+        if room_name in chat_rooms:
+            return jsonify({'success': False, 'message': 'Room already exists!'})
+
+
+        chat_rooms[room_name] = [{
+            "user": "SYSTEM", "user_id": "SYSTEM",
+            "message": f"Global room '{room_name}' created by NYXX",
+            "time": timestamp, "system": True
+        }]
+        room_storage.save_global_chat_rooms(chat_rooms)
+
+        global_names = room_storage.load_global_room_names()
+        if room_name not in global_names:
+            global_names.append(room_name)
+            room_storage.save_global_room_names(global_names)
+
+        chat_rooms["general"].append({
+            "user": "SYSTEM", "user_id": "SYSTEM",
+            "message": f"NYXX created global room \"{room_name}\"!",
+            "time": timestamp, "system": True
+        })
+        room_storage.save_global_chat_rooms(chat_rooms)
+
         return jsonify({
-            'success': True, 
-            'message': f'Already in room "{room_name}"!',
-            'rooms': user_rooms,
+            'success': True,
+            'message': f'Global room "{room_name}" created!',
+            'rooms': get_all_visible_room_names(user_id),
             'switch_to': room_name
         })
+
+    user_rooms = load_user_rooms(user_id)
+
+    if room_name in user_rooms:
+        return jsonify({
+            'success': True,
+            'message': f'Already in room "{room_name}"!',
+            'rooms': get_all_visible_room_names(user_id),
+            'switch_to': room_name
+        })
+
+    if room_name in chat_rooms:
+        pass
+    else:
+        chat_rooms[room_name] = [{
+            "user": "SYSTEM", "user_id": "SYSTEM",
+            "message": f"Room '{room_name}' created by {username}",
+            "time": timestamp, "system": True
+        }]
+        room_storage.save_global_chat_rooms(chat_rooms)
+
+    global_rooms = room_storage.load_global_room_names()
+    if room_name not in global_rooms:
+        user_rooms.append(room_name)
+        save_user_rooms(user_id, user_rooms)
+
+    if room_name != (room_name):
+        pass
+
+    return jsonify({
+        'success': True,
+        'message': f'{"Created" if room_name not in chat_rooms else "Joined"} room "{room_name}"!',
+        'rooms': get_all_visible_room_names(user_id),
+        'switch_to': room_name
+    })
 
 @app.route('/delete_room', methods=['POST'])
 def delete_room():
     if not session.get('logged_in'):
         return jsonify({'success': False, 'message': 'Login first!'})
-    
+
     data = request.json
     room_name = data.get('room', '').strip().lower()
-    
+
     if room_name == 'general':
         return jsonify({'success': False, 'message': 'Cannot remove general room'})
-    
+
     user_id = session['user_id']
-    user_rooms = load_user_rooms(user_id)
     
+    if user_id == "NYXX_MASTER":
+        global_rooms = room_storage.load_global_room_names()
+        if room_name in global_rooms:
+            if room_name in chat_rooms:
+                del chat_rooms[room_name]
+                room_storage.save_global_chat_rooms(chat_rooms)
+
+            global_rooms.remove(room_name)
+            room_storage.save_global_room_names(global_rooms)
+            
+            timestamp = datetime.now().strftime("%H:%M:%S")
+            chat_rooms["general"].append({
+                "user": "SYSTEM", "user_id": "SYSTEM",
+                "message": f"NYXX deleted global room \"{room_name}\"",
+                "time": timestamp, "system": True
+            })
+            room_storage.save_global_chat_rooms(chat_rooms)
+            
+            return jsonify({
+                'success': True,
+                'message': f'Global room "{room_name}" deleted by NYXX!',
+                'rooms': get_all_visible_room_names(user_id)
+            })
+        else:
+            return jsonify({'success': False, 'message': 'Room not found'})
+
+    global_rooms = room_storage.load_global_room_names()
+    if room_name in global_rooms:
+        return jsonify({'success': False, 'message': 'Global rooms cannot be removed!'})
+
+    user_rooms = load_user_rooms(user_id)
+
     if room_name in user_rooms:
         user_rooms.remove(room_name)
         save_user_rooms(user_id, user_rooms)
         return jsonify({
-            'success': True, 
+            'success': True,
             'message': f'Room "{room_name}" removed!',
-            'rooms': user_rooms
+            'rooms': get_all_visible_room_names(user_id)
         })
+
+    return jsonify({'success': False, 'message': 'Room not found in your list'})
+
+@app.route('/rooms_separated')
+def get_rooms_separated():
+    if not session.get('logged_in'):
+        return jsonify({'global_rooms': [], 'user_rooms': []})
     
-    return jsonify({'success': False, 'message': 'Room not found'})
+    user_id = session['user_id']
+    global_rooms_raw = room_storage.load_global_room_names()
+    
+    global_rooms = ['general']
+    other_globals = sorted([r for r in global_rooms_raw if r != 'general'])
+    global_rooms.extend(other_globals)
+    
+    user_rooms = load_user_rooms(user_id)
+    personal_rooms = [r for r in user_rooms if r not in global_rooms]
+    
+    return jsonify({
+        'global_rooms': global_rooms,
+        'user_rooms': personal_rooms,
+        'is_nyxx': user_id == "NYXX_MASTER"
+    })
+
+@app.route('/save_user_rooms_order', methods=['POST'])
+def save_user_rooms_order():
+    if not session.get('logged_in'):
+        return jsonify({'success': False})
+    
+    data = request.json
+    user_id = session['user_id']
+    new_order = data.get('rooms', [])
+    
+    save_user_rooms(user_id, new_order)
+    return jsonify({'success': True})
 
 @app.route('/rooms')
 def get_rooms():
     if not session.get('logged_in'):
         return jsonify({'rooms': []})
-    
     user_id = session['user_id']
-    user_rooms = load_user_rooms(user_id)
-    return jsonify({'rooms': user_rooms})
+    rooms = get_all_visible_room_names(user_id)
+    return jsonify({'rooms': rooms})
 
 @app.route('/chat_history')
 def chat_history_route():

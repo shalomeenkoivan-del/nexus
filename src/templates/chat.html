@@ -48,6 +48,31 @@ h1{margin:0;font-size:2.2rem;font-weight:900;background:linear-gradient(45deg,#0
 .room-item.general:hover{background:linear-gradient(145deg,#0f0,#00ff88) !important;transform:none !important;}
 .room-item.selected{background:linear-gradient(145deg,#ff4444,#cc0000);color:#fff;border:1px solid #ff6666;text-shadow:0 0 8px #ff4444;font-weight:bold;}
 .room-item.add-room{background:linear-gradient(145deg,rgba(0,255,136,0.2),rgba(0,255,0,0.1));color:#00ff88;font-size:24px;font-weight:bold;text-align:center;line-height:1.2;border:2px solid #00ff88;text-shadow:0 0 10px #00ff88;}
+.global-room {
+    background: linear-gradient(145deg, #ff4444, #cc0000) !important;
+    color: #fff !important;
+    border: 2px solid #ff6666 !important;
+    font-weight: bold !important;
+    text-shadow: 0 0 8px #ff4444 !important;
+    margin-bottom: 5px !important;
+}
+.global-room:hover {
+    background: linear-gradient(145deg, #cc0000, #ff4444) !important;
+    box-shadow: 0 0 20px rgba(255, 68, 68, 0.8) !important;
+}
+.global-room.selected {
+    background: linear-gradient(145deg, #00ff88, #0f0) !important;
+    color: #000 !important;
+    border-color: #00ff88 !important;
+}
+.user-room {
+    background: rgba(0,255,136,0.08) !important;
+    border: 1px solid rgba(0,255,136,0.4) !important;
+}
+.user-room:hover {
+    background: rgba(0,255,136,0.25) !important;
+    border-color: #00ff88 !important;
+}
 .room-delete-btn {
     position: absolute !important; 
     right: 8px; top: 50%; 
@@ -116,7 +141,7 @@ h1{margin:0;font-size:2.2rem;font-weight:900;background:linear-gradient(45deg,#0
     </div>
 
     <div class="rooms-panel">
-        <div class="rooms-header">YOUR ROOMS</div>
+        <div class="rooms-header">SHADOW ROOMS</div>
         <div class="rooms-list" id="rooms-list">
         </div>
     </div>
@@ -127,13 +152,17 @@ let chat = document.getElementById('chat');
 let MY_USERNAME = null;
 let currentRoom = 'general';
 let draggedItem = null;
+let globalRooms = [];
 let userRooms = [];
+let isNyxx = false;
 
-function loadUserRooms() {
-    fetch('/rooms')
+function loadRoomsSeparated() {
+    fetch('/rooms_separated')
     .then(r => r.json())
     .then(data => {
-        userRooms = data.rooms;
+        globalRooms = data.global_rooms || [];
+        userRooms = data.user_rooms || [];
+        isNyxx = data.is_nyxx || false;
         renderRooms();
     })
     .catch(err => console.error('Rooms load error:', err));
@@ -143,24 +172,73 @@ function renderRooms() {
     const roomsList = document.getElementById('rooms-list');
     roomsList.innerHTML = '';
     
-    const uniqueRooms = ['general', ...new Set(userRooms.filter(r => r !== 'general'))];
+    const globalHeader = document.createElement('div');
+    globalHeader.className = 'rooms-header';
+    globalHeader.textContent = '🌐 GLOBAL';
+    globalHeader.style.background = 'linear-gradient(145deg,rgba(255,68,68,0.2),rgba(255,0,0,0.1))';
+    globalHeader.style.color = '#ff4444';
+    globalHeader.style.textShadow = '0 0 10px #ff4444';
+    roomsList.appendChild(globalHeader);
     
-    const generalItem = document.createElement('div');
-    generalItem.className = 'room-item general' + (currentRoom === 'general' ? ' selected' : '');
-    generalItem.dataset.room = 'general';
-    generalItem.textContent = 'general';
-    generalItem.onclick = () => switchRoom('general');
-    roomsList.appendChild(generalItem);
+    globalRooms.forEach(roomName => {
+        if (roomName === 'general') {
+            const generalItem = document.createElement('div');
+            generalItem.className = 'room-item general global-room' + (currentRoom === 'general' ? ' selected' : '');
+            generalItem.dataset.room = 'general';
+            generalItem.textContent = 'general';
+            generalItem.onclick = () => switchRoom('general');
+            roomsList.appendChild(generalItem);
+        } else {
+            const roomItem = document.createElement('div');
+            roomItem.className = 'room-item global-room' + (currentRoom === roomName ? ' selected' : '');
+            roomItem.dataset.room = roomName;
+            
+            const roomText = document.createElement('span');
+            roomText.textContent = roomName;
+            roomItem.appendChild(roomText);
+            
+            if (isNyxx && roomName !== 'general') {
+                const deleteBtn = document.createElement('span');
+                deleteBtn.innerHTML = '✕';
+                deleteBtn.className = 'room-delete-btn';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    if (confirm(`Delete GLOBAL room "${roomName}"?`)) {
+                        deleteUserRoom(roomName);
+                    }
+                };
+                roomItem.appendChild(deleteBtn);
+            }
+            
+            roomItem.onclick = (e) => { 
+                if (!e.target.classList.contains('room-delete-btn')) {
+                    switchRoom(roomName); 
+                }
+            };
+            roomsList.appendChild(roomItem);
+        }
+    });
     
-    uniqueRooms.forEach(roomName => {
-        if (roomName !== 'general') {
-            if (!Array.from(roomsList.children).some(item => 
-                item.dataset.room === roomName && !item.classList.contains('general'))) {
-                
+    if (!isNyxx) {
+        const separator = document.createElement('div');
+        separator.style.height = '12px';
+        separator.style.background = 'linear-gradient(90deg,transparent,#0f0,transparent)';
+        separator.style.margin = '10px 0';
+        roomsList.appendChild(separator);
+        
+        const userHeader = document.createElement('div');
+        userHeader.className = 'rooms-header';
+        userHeader.textContent = '👤 USER';
+        userHeader.style.background = 'linear-gradient(145deg,rgba(0,255,136,0.1),transparent)';
+        roomsList.appendChild(userHeader);
+        
+        if (userRooms.length > 0) {
+            userRooms.forEach(roomName => {
                 const roomItem = document.createElement('div');
-                roomItem.className = 'room-item' + (currentRoom === roomName ? ' selected' : '');
+                roomItem.className = 'room-item user-room reorderable' + (currentRoom === roomName ? ' selected' : '');
                 roomItem.draggable = true;
                 roomItem.dataset.room = roomName;
+                roomItem.dataset.index = userRooms.indexOf(roomName);
                 roomItem.style.position = 'relative';
                 
                 const roomText = document.createElement('span');
@@ -171,10 +249,9 @@ function renderRooms() {
                 const deleteBtn = document.createElement('span');
                 deleteBtn.innerHTML = '✕';
                 deleteBtn.className = 'room-delete-btn';
-                deleteBtn.title = 'Delete room';
                 deleteBtn.onclick = (e) => {
                     e.stopPropagation();
-                    if (confirm(`Delete room "${roomName}"?\nThis won't delete chat history.`)) {
+                    if (confirm(`Delete room "${roomName}"?\nChat history will remain.`)) {
                         deleteUserRoom(roomName);
                     }
                 };
@@ -187,17 +264,23 @@ function renderRooms() {
                     }
                 };
                 roomsList.appendChild(roomItem);
-            }
+            });
         }
-    });
-    
-    const addButton = document.getElementById('rooms-list')?.querySelector('.add-room');
-    if (!addButton) {
-        const newAddButton = document.createElement('div');
-        newAddButton.className = 'room-item add-room';
-        newAddButton.textContent = '+';
-        newAddButton.onclick = showAddRoom;
-        roomsList.appendChild(newAddButton);
+        
+        const addButton = document.createElement('div');
+        addButton.className = 'room-item add-room';
+        addButton.textContent = '+';
+        addButton.onclick = showAddRoom;
+        roomsList.appendChild(addButton);
+    } else {
+        const nyxxAddButton = document.createElement('div');
+        nyxxAddButton.className = 'room-item add-room';
+        nyxxAddButton.style.background = 'linear-gradient(145deg,#ff4444,#cc0000) !important';
+        nyxxAddButton.style.color = '#fff !important';
+        nyxxAddButton.style.borderColor = '#ff6666 !important';
+        nyxxAddButton.textContent = '+';
+        nyxxAddButton.onclick = showAddRoom;
+        roomsList.appendChild(nyxxAddButton);
     }
 }
 
@@ -210,7 +293,7 @@ function deleteUserRoom(roomName) {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            loadUserRooms();
+            loadRoomsSeparated();
             if (currentRoom === roomName) {
                 currentRoom = 'general';
                 updateChat();
@@ -233,18 +316,15 @@ function showAddRoom() {
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                loadUserRooms();
+                loadRoomsSeparated();
                 if (data.switch_to) {
                     switchRoom(data.switch_to);
                 }
-                console.log(data.message);
             } else {
                 alert(data.message);
             }
         })
         .catch(err => console.error('Error:', err));
-    } else if (roomName && roomName.toLowerCase() === 'general') {
-        alert('general всегда наверху! 😎');
     }
 }
 
@@ -263,20 +343,19 @@ function initDragAndDrop() {
     const roomsList = document.getElementById('rooms-list');
     
     roomsList.addEventListener('dragstart', e => {
-        const item = e.target.closest('.room-item');
-        if (item && !item.classList.contains('general') && !item.classList.contains('add-room')) {
+        const item = e.target.closest('.reorderable');
+        if (item) {
             draggedItem = item;
             item.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/html', item.outerHTML);
-        } else {
-            e.preventDefault();
+            e.dataTransfer.setData('text/plain', item.dataset.index);
         }
     });
     
     roomsList.addEventListener('dragend', e => {
         if (draggedItem) {
             draggedItem.classList.remove('dragging');
+            saveUserRoomsOrder();
             draggedItem = null;
         }
         document.querySelectorAll('.room-item.drag-over').forEach(item => 
@@ -288,8 +367,8 @@ function initDragAndDrop() {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
         
-        const item = e.target.closest('.room-item');
-        if (item && !item.classList.contains('general') && !item.classList.contains('add-room') && draggedItem !== item) {
+        const item = e.target.closest('.reorderable');
+        if (item && draggedItem !== item) {
             item.classList.add('drag-over');
             
             const rect = item.getBoundingClientRect();
@@ -298,10 +377,15 @@ function initDragAndDrop() {
             if (e.clientY < midpoint) {
                 roomsList.insertBefore(draggedItem, item);
             } else {
-                if (item.nextSibling) {
+                if (item.nextSibling && !item.nextSibling.classList.contains('add-room')) {
                     roomsList.insertBefore(draggedItem, item.nextSibling);
                 } else {
-                    roomsList.appendChild(draggedItem);
+                    const addBtn = roomsList.querySelector('.add-room');
+                    if (addBtn) {
+                        roomsList.insertBefore(draggedItem, addBtn);
+                    } else {
+                        roomsList.appendChild(draggedItem);
+                    }
                 }
             }
         }
@@ -318,6 +402,17 @@ function initDragAndDrop() {
             item.classList.remove('drag-over')
         );
     });
+}
+
+function saveUserRoomsOrder() {
+    const reorderableItems = Array.from(document.querySelectorAll('.reorderable'));
+    const newOrder = reorderableItems.map(item => item.dataset.room);
+    
+    fetch('/save_user_rooms_order', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({rooms: newOrder})
+    }).catch(err => console.error('Order save error:', err));
 }
 
 function createParticle() {
@@ -412,11 +507,11 @@ document.getElementById('input').addEventListener('keypress', e => {
 
 document.addEventListener('DOMContentLoaded', () => {
     initDragAndDrop();
-    loadUserRooms();
+    loadRoomsSeparated();
     getCurrentUser();
     updateChat();
     updateStatus();
-    setInterval(loadUserRooms, 10000);
+    setInterval(loadRoomsSeparated, 10000);
 });
 
 setInterval(() => {
