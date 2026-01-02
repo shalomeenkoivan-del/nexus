@@ -2,9 +2,7 @@ import subprocess
 import threading
 import time
 import os
-import socket
-
-ip = socket.gethostbyname(socket.gethostname())
+from ip_config import get_server_ip
 
 class Main:
     def __init__(self):
@@ -13,8 +11,9 @@ class Main:
         self.server_process = None
     
     def start_server(self):
+        ip = get_server_ip()
         print("Starting Nexus Server...")
-        self.server_process = subprocess.Popen(['python3', 'server.py'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        self.server_process = subprocess.Popen(['python3', 'app.py'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
         time.sleep(3)
         print(f"Server is OK: {ip}:5000")
     

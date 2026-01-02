@@ -1,1 +1,305 @@
-{"general": [{"user": "SYSTEM", "user_id": "SYSTEM", "message": "NYXX(MASTER) entered the Shadows!", "time": "00:29:40", "system": true}, {"user": "SYSTEM", "user_id": "SYSTEM", "message": "NYXX left the Shadows", "time": "00:30:07", "system": true}, {"user": "SYSTEM", "user_id": "SYSTEM", "message": "NYXX(MASTER) entered the Shadows!", "time": "00:30:11", "system": true}, {"user": "SYSTEM", "user_id": "SYSTEM", "message": "NYXX(MASTER) entered the Shadows!", "time": "00:32:18", "system": true}, {"user": "SYSTEM", "user_id": "SYSTEM", "message": "NYXX left the Shadows", "time": "00:33:09", "system": true}, {"user": "SYSTEM", "user_id": "SYSTEM", "message": "Flux Rift entered the Shadows!", "time": "00:34:57", "system": true}, {"user": "Flux Rift", "user_id": "9C098AF3", "message": "dffddffd", "time": "00:35:04", "system": false}, {"user": "SYSTEM", "user_id": "SYSTEM", "message": "Flux Rift left the Shadows", "time": "00:35:16", "system": true}, {"user": "SYSTEM", "user_id": "SYSTEM", "message": "NYXX(MASTER) entered the Shadows!", "time": "00:35:21", "system": true}, {"user": "SYSTEM", "user_id": "SYSTEM", "message": "NYXX left the Shadows", "time": "00:36:11", "system": true}, {"user": "SYSTEM", "user_id": "SYSTEM", "message": "Halo Vesper entered the Shadows!", "time": "00:36:15", "system": true}, {"user": "SYSTEM", "user_id": "SYSTEM", "message": "NYXX(MASTER) entered the Shadows!", "time": "00:36:39", "system": true}, {"user": "NYXX", "user_id": "NYXX_MASTER", "message": "\u041f\u0430\u043f\u0430 \u043f\u0440\u0438\u0432\u0435\u0442", "time": "00:36:50", "system": false}, {"user": "SYSTEM", "user_id": "SYSTEM", "message": "NYXX(MASTER) entered the Shadows!", "time": "01:48:29", "system": true}, {"user": "SYSTEM", "user_id": "SYSTEM", "message": "NYXX(MASTER) entered the Shadows!", "time": "01:50:20", "system": true}, {"user": "SYSTEM", "user_id": "SYSTEM", "message": "NYXX(MASTER) entered the Shadows!", "time": "02:02:35", "system": true}, {"user": "SYSTEM", "user_id": "SYSTEM", "message": "Lurker Echo entered the Shadows!", "time": "02:03:37", "system": true}, {"user": "SYSTEM", "user_id": "SYSTEM", "message": "NYXX left the Shadows", "time": "02:03:55", "system": true}, {"user": "SYSTEM", "user_id": "SYSTEM", "message": "NYXX(MASTER) entered the Shadows!", "time": "02:04:02", "system": true}, {"user": "SYSTEM", "user_id": "SYSTEM", "message": "NYXX left the Shadows", "time": "02:04:07", "system": true}], "123": [{"user": "SYSTEM", "user_id": "SYSTEM", "message": "Room '123' created by NYXX", "time": "00:29:46", "system": true}, {"user": "NYXX", "user_id": "NYXX_MASTER", "message": "123", "time": "00:29:49", "system": false}], "666": [{"user": "SYSTEM", "user_id": "SYSTEM", "message": "Room '666' created by NYXX", "time": "00:29:53", "system": true}, {"user": "NYXX", "user_id": "NYXX_MASTER", "message": "666", "time": "00:29:55", "system": false}], "777": [{"user": "SYSTEM", "user_id": "SYSTEM", "message": "Room '777' created by NYXX", "time": "00:29:58", "system": true}, {"user": "NYXX", "user_id": "NYXX_MASTER", "message": "777", "time": "00:30:00", "system": false}], "\u043f\u0430\u043f\u0430": [{"user": "SYSTEM", "user_id": "SYSTEM", "message": "Room '\u043f\u0430\u043f\u0430' created by NYXX", "time": "00:37:13", "system": true}, {"user": "NYXX", "user_id": "NYXX_MASTER", "message": "\u041f\u0440\u0438\u0432\u0435\u0442", "time": "00:37:20", "system": false}, {"user": "Halo Vesper", "user_id": "3FF8A5E3", "message": "\u043f\u0440\u0438\u0432\u0435\u0442\u044c", "time": "00:37:34", "system": false}], "gfgf": [{"user": "SYSTEM", "user_id": "SYSTEM", "message": "Room 'gfgf' created by NYXX", "time": "01:50:26", "system": true}], "\u043d\u0438\u043a\u0438\u0442\u043e\u0441": [{"user": "SYSTEM", "user_id": "SYSTEM", "message": "Room '\u043d\u0438\u043a\u0438\u0442\u043e\u0441' created by NYXX", "time": "02:03:09", "system": true}, {"user": "NYXX", "user_id": "NYXX_MASTER", "message": "\u0432\u0430\u0432\u0430\u0432\u0430\u0432\u0430", "time": "02:03:20", "system": false}, {"user": "SYSTEM", "user_id": "SYSTEM", "message": "Lurker Echo joined room '\u043d\u0438\u043a\u0438\u0442\u043e\u0441'", "time": "02:03:45", "system": true}, {"user": "Lurker Echo", "user_id": "F1CCBB00", "message": "\u0414\u0430\u0440\u043e\u0432\u0430", "time": "02:03:50", "system": false}]}
+{
+  "general": [
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "NYXX(MASTER) entered the Shadows!",
+      "time": "00:29:40",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "NYXX left the Shadows",
+      "time": "00:30:07",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "NYXX(MASTER) entered the Shadows!",
+      "time": "00:30:11",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "NYXX(MASTER) entered the Shadows!",
+      "time": "00:32:18",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "NYXX left the Shadows",
+      "time": "00:33:09",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Flux Rift entered the Shadows!",
+      "time": "00:34:57",
+      "system": true
+    },
+    {
+      "user": "Flux Rift",
+      "user_id": "9C098AF3",
+      "message": "dffddffd",
+      "time": "00:35:04",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Flux Rift left the Shadows",
+      "time": "00:35:16",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "NYXX(MASTER) entered the Shadows!",
+      "time": "00:35:21",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "NYXX left the Shadows",
+      "time": "00:36:11",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Halo Vesper entered the Shadows!",
+      "time": "00:36:15",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "NYXX(MASTER) entered the Shadows!",
+      "time": "00:36:39",
+      "system": true
+    },
+    {
+      "user": "NYXX",
+      "user_id": "NYXX_MASTER",
+      "message": "Папа привет",
+      "time": "00:36:50",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "NYXX(MASTER) entered the Shadows!",
+      "time": "01:48:29",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "NYXX(MASTER) entered the Shadows!",
+      "time": "01:50:20",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "NYXX(MASTER) entered the Shadows!",
+      "time": "02:02:35",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Lurker Echo entered the Shadows!",
+      "time": "02:03:37",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "NYXX left the Shadows",
+      "time": "02:03:55",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "NYXX(MASTER) entered the Shadows!",
+      "time": "02:04:02",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "NYXX left the Shadows",
+      "time": "02:04:07",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Nova Sable entered the Shadows!",
+      "time": "13:25:22",
+      "system": true
+    },
+    {
+      "user": "Nova Sable",
+      "user_id": "CCB9A596",
+      "message": "dfdfd",
+      "time": "13:25:31",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Nova Sable entered the Shadows!",
+      "time": "13:26:43",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "NYXX(MASTER) entered the Shadows!",
+      "time": "13:28:40",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "NYXX(MASTER) entered the Shadows!",
+      "time": "13:31:44",
+      "system": true
+    }
+  ],
+  "123": [
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Room '123' created by NYXX",
+      "time": "00:29:46",
+      "system": true
+    },
+    {
+      "user": "NYXX",
+      "user_id": "NYXX_MASTER",
+      "message": "123",
+      "time": "00:29:49",
+      "system": false
+    }
+  ],
+  "666": [
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Room '666' created by NYXX",
+      "time": "00:29:53",
+      "system": true
+    },
+    {
+      "user": "NYXX",
+      "user_id": "NYXX_MASTER",
+      "message": "666",
+      "time": "00:29:55",
+      "system": false
+    }
+  ],
+  "777": [
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Room '777' created by NYXX",
+      "time": "00:29:58",
+      "system": true
+    },
+    {
+      "user": "NYXX",
+      "user_id": "NYXX_MASTER",
+      "message": "777",
+      "time": "00:30:00",
+      "system": false
+    }
+  ],
+  "папа": [
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Room 'папа' created by NYXX",
+      "time": "00:37:13",
+      "system": true
+    },
+    {
+      "user": "NYXX",
+      "user_id": "NYXX_MASTER",
+      "message": "Привет",
+      "time": "00:37:20",
+      "system": false
+    },
+    {
+      "user": "Halo Vesper",
+      "user_id": "3FF8A5E3",
+      "message": "приветь",
+      "time": "00:37:34",
+      "system": false
+    }
+  ],
+  "gfgf": [
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Room 'gfgf' created by NYXX",
+      "time": "01:50:26",
+      "system": true
+    }
+  ],
+  "никитос": [
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Room 'никитос' created by NYXX",
+      "time": "02:03:09",
+      "system": true
+    },
+    {
+      "user": "NYXX",
+      "user_id": "NYXX_MASTER",
+      "message": "вававава",
+      "time": "02:03:20",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Lurker Echo joined room 'никитос'",
+      "time": "02:03:45",
+      "system": true
+    },
+    {
+      "user": "Lurker Echo",
+      "user_id": "F1CCBB00",
+      "message": "Дарова",
+      "time": "02:03:50",
+      "system": false
+    }
+  ],
+  "default": [
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Room 'default' created by Nova Sable",
+      "time": "13:25:43",
+      "system": true
+    },
+    {
+      "user": "Nova Sable",
+      "user_id": "CCB9A596",
+      "message": "dfdffd",
+      "time": "13:25:46",
+      "system": false
+    }
+  ]
+}
