@@ -216,6 +216,461 @@
       "message": "Fhdhdhd",
       "time": "15:51:59",
       "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Abyss Synth entered the Shadows!",
+      "time": "19:45:38",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Vortex Vapor entered the Shadows!",
+      "time": "19:54:03",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Vortex Vapor left the Shadows",
+      "time": "19:54:31",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Frost Arcane entered the Shadows!",
+      "time": "19:54:40",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Night Beacon entered the Shadows!",
+      "time": "19:57:42",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Glitch Shroud entered the Shadows!",
+      "time": "20:02:55",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Mist Shadow entered the Shadows!",
+      "time": "20:05:49",
+      "system": true
+    },
+    {
+      "user": "Mist Shadow",
+      "user_id": "13B7D1CA",
+      "message": "dfdf",
+      "time": "20:05:59",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Luminous Trace entered the Shadows!",
+      "time": "20:08:09",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Ember Zone entered the Shadows!",
+      "time": "20:11:45",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Prism Slash entered the Shadows!",
+      "time": "20:16:46",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Prism Slash left the Shadows",
+      "time": "20:16:57",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Prism Slash entered the Shadows!",
+      "time": "20:16:59",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Quasar Blaze entered the Shadows!",
+      "time": "20:19:02",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Quasar Blaze left the Shadows",
+      "time": "20:19:25",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Quasar Blaze entered the Shadows!",
+      "time": "20:19:28",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Black Surge entered the Shadows!",
+      "time": "20:27:41",
+      "system": true
+    },
+    {
+      "user": "Black Surge",
+      "user_id": "4A21306C",
+      "message": "dfdf",
+      "time": "20:28:17",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Black Surge left the Shadows",
+      "time": "20:28:20",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Black Surge entered the Shadows!",
+      "time": "20:28:24",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Black Surge entered the Shadows!",
+      "time": "20:29:06",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Zenith Umbra entered the Shadows!",
+      "time": "20:29:50",
+      "system": true
+    },
+    {
+      "user": "Zenith Umbra",
+      "user_id": "8CDF57D4",
+      "message": "Dhdhd",
+      "time": "20:29:56",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Zenith Umbra left the Shadows",
+      "time": "20:35:20",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Zenith Umbra entered the Shadows!",
+      "time": "20:35:31",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Haze Shadow entered the Shadows!",
+      "time": "21:11:15",
+      "system": true
+    },
+    {
+      "user": "Haze Shadow",
+      "user_id": "5CA266EF",
+      "message": "fff",
+      "time": "21:11:20",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Silent Zypher entered the Shadows!",
+      "time": "21:15:03",
+      "system": true
+    },
+    {
+      "user": "Silent Zypher",
+      "user_id": "15261383",
+      "message": "dfdfdf",
+      "time": "21:15:08",
+      "system": false
+    },
+    {
+      "user": "Silent Zypher",
+      "user_id": "15261383",
+      "message": "dfdfdf",
+      "time": "21:15:13",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Zenith Umbra entered the Shadows!",
+      "time": "21:16:01",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Silent Zypher left the Shadows",
+      "time": "21:16:10",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Silent Zypher entered the Shadows!",
+      "time": "21:16:15",
+      "system": true
+    },
+    {
+      "user": "Silent Zypher",
+      "user_id": "15261383",
+      "message": "dfdf",
+      "time": "21:16:24",
+      "system": false
+    },
+    {
+      "user": "Zenith Umbra",
+      "user_id": "8CDF57D4",
+      "message": "Dhdhhd",
+      "time": "21:16:32",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Arcane Thunder entered the Shadows!",
+      "time": "21:18:51",
+      "system": true
+    },
+    {
+      "user": "Arcane Thunder",
+      "user_id": "A836B437",
+      "message": "dfdffd",
+      "time": "21:18:56",
+      "system": false
+    },
+    {
+      "user": "Arcane Thunder",
+      "user_id": "A836B437",
+      "message": "dfdfdf",
+      "time": "21:19:01",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Cosmos Zypher entered the Shadows!",
+      "time": "21:26:25",
+      "system": true
+    },
+    {
+      "user": "Cosmos Zypher",
+      "user_id": "E5BB63ED",
+      "message": "dfdfdf",
+      "time": "21:26:30",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Zenith Umbra entered the Shadows!",
+      "time": "21:26:54",
+      "system": true
+    },
+    {
+      "user": "Zenith Umbra",
+      "user_id": "8CDF57D4",
+      "message": "Dhdhd",
+      "time": "21:26:59",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Glitch Sonic entered the Shadows!",
+      "time": "21:30:18",
+      "system": true
+    },
+    {
+      "user": "Glitch Sonic",
+      "user_id": "1F60C621",
+      "message": "dfdf",
+      "time": "21:30:23",
+      "system": false
+    },
+    {
+      "user": "Glitch Sonic",
+      "user_id": "1F60C621",
+      "message": "dfdfdf",
+      "time": "21:30:34",
+      "system": false
+    },
+    {
+      "user": "Glitch Sonic",
+      "user_id": "1F60C621",
+      "message": "dfdfdf",
+      "time": "21:30:36",
+      "system": false
+    },
+    {
+      "user": "Glitch Sonic",
+      "user_id": "1F60C621",
+      "message": "ваавва",
+      "time": "21:31:05",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Dusk Twilight entered the Shadows!",
+      "time": "21:34:43",
+      "system": true
+    },
+    {
+      "user": "Dusk Twilight",
+      "user_id": "76E10CB8",
+      "message": "dfdfdf",
+      "time": "21:34:47",
+      "system": false
+    },
+    {
+      "user": "Dusk Twilight",
+      "user_id": "76E10CB8",
+      "message": "dfdfdf",
+      "time": "21:34:54",
+      "system": false
+    },
+    {
+      "user": "Dusk Twilight",
+      "user_id": "76E10CB8",
+      "message": "нет не работает",
+      "time": "21:35:02",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Dusk Twilight left the Shadows",
+      "time": "21:35:50",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "NYXX(MASTER) entered the Shadows!",
+      "time": "21:35:57",
+      "system": true
+    },
+    {
+      "user": "NYXX",
+      "user_id": "NYXX_MASTER",
+      "message": "dfdfdf",
+      "time": "21:36:01",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "NYXX created global room \"555\"!",
+      "time": "21:36:10",
+      "system": true
+    },
+    {
+      "user": "NYXX",
+      "user_id": "NYXX_MASTER",
+      "message": "dffd",
+      "time": "21:36:15",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "NYXX left the Shadows",
+      "time": "21:36:20",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Cipher Warp entered the Shadows!",
+      "time": "21:36:34",
+      "system": true
+    },
+    {
+      "user": "Cipher Warp",
+      "user_id": "02C134CD",
+      "message": "fddffd",
+      "time": "21:36:39",
+      "system": false
+    },
+    {
+      "user": "Cipher Warp",
+      "user_id": "02C134CD",
+      "message": "dfdf",
+      "time": "21:36:49",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Ion Chasm entered the Shadows!",
+      "time": "21:49:34.419",
+      "system": true
+    },
+    {
+      "user": "Ion Chasm",
+      "user_id": "5642DF46",
+      "message": "dfdf",
+      "time": "21:49:38.530",
+      "system": false
+    },
+    {
+      "user": "Ion Chasm",
+      "user_id": "5642DF46",
+      "message": "dfdfdf",
+      "time": "21:49:44.429",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Ion Chasm left the Shadows",
+      "time": "21:49:57.315",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Ion Chasm entered the Shadows!",
+      "time": "21:50:00.008",
+      "system": true
     }
   ],
   "test": [
@@ -261,6 +716,224 @@
       "user_id": "2FD394D2",
       "message": "nhh",
       "time": "15:51:40",
+      "system": false
+    },
+    {
+      "user": "Zenith Umbra",
+      "user_id": "8CDF57D4",
+      "message": "Dhhdhdd",
+      "time": "20:30:11",
+      "system": false
+    },
+    {
+      "user": "Haze Shadow",
+      "user_id": "5CA266EF",
+      "message": "dfdfdf",
+      "time": "21:11:29",
+      "system": false
+    },
+    {
+      "user": "Silent Zypher",
+      "user_id": "15261383",
+      "message": "dfdfdf",
+      "time": "21:15:25",
+      "system": false
+    },
+    {
+      "user": "Zenith Umbra",
+      "user_id": "8CDF57D4",
+      "message": "Dhdhhd",
+      "time": "21:17:14",
+      "system": false
+    },
+    {
+      "user": "Silent Zypher",
+      "user_id": "15261383",
+      "message": "fddfdf",
+      "time": "21:17:20",
+      "system": false
+    },
+    {
+      "user": "Silent Zypher",
+      "user_id": "15261383",
+      "message": "вава",
+      "time": "21:17:40",
+      "system": false
+    },
+    {
+      "user": "Arcane Thunder",
+      "user_id": "A836B437",
+      "message": "dffd",
+      "time": "21:19:08",
+      "system": false
+    },
+    {
+      "user": "Cosmos Zypher",
+      "user_id": "E5BB63ED",
+      "message": "dfdfdf",
+      "time": "21:26:43",
+      "system": false
+    },
+    {
+      "user": "Zenith Umbra",
+      "user_id": "8CDF57D4",
+      "message": "Dhdhdh",
+      "time": "21:27:09",
+      "system": false
+    },
+    {
+      "user": "Glitch Sonic",
+      "user_id": "1F60C621",
+      "message": "ваавва",
+      "time": "21:31:02",
+      "system": false
+    },
+    {
+      "user": "Cipher Warp",
+      "user_id": "02C134CD",
+      "message": "dffddf",
+      "time": "21:36:45",
+      "system": false
+    },
+    {
+      "user": "Ion Chasm",
+      "user_id": "5642DF46",
+      "message": "dffdfd",
+      "time": "21:49:52.185",
+      "system": false
+    }
+  ],
+  "3": [
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Room '3' created by Abyss Synth",
+      "time": "19:45:58",
+      "system": true
+    }
+  ],
+  "2": [
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Room '2' created by Abyss Synth",
+      "time": "19:47:26",
+      "system": true
+    },
+    {
+      "user": "Zenith Umbra",
+      "user_id": "8CDF57D4",
+      "message": "Dhhdhd",
+      "time": "20:30:38",
+      "system": false
+    },
+    {
+      "user": "Zenith Umbra",
+      "user_id": "8CDF57D4",
+      "message": "Fudhdh",
+      "time": "20:30:55",
+      "system": false
+    },
+    {
+      "user": "Zenith Umbra",
+      "user_id": "8CDF57D4",
+      "message": "Fhdhdh",
+      "time": "20:31:01",
+      "system": false
+    },
+    {
+      "user": "Zenith Umbra",
+      "user_id": "8CDF57D4",
+      "message": "Dhdk",
+      "time": "20:31:04",
+      "system": false
+    },
+    {
+      "user": "Black Surge",
+      "user_id": "4A21306C",
+      "message": "dffddf",
+      "time": "20:31:48",
+      "system": false
+    },
+    {
+      "user": "Black Surge",
+      "user_id": "4A21306C",
+      "message": "r343",
+      "time": "20:32:00",
+      "system": false
+    },
+    {
+      "user": "Black Surge",
+      "user_id": "4A21306C",
+      "message": "dffddf",
+      "time": "20:32:10",
+      "system": false
+    },
+    {
+      "user": "Black Surge",
+      "user_id": "4A21306C",
+      "message": "111",
+      "time": "20:32:14",
+      "system": false
+    },
+    {
+      "user": "Arcane Thunder",
+      "user_id": "A836B437",
+      "message": "22",
+      "time": "21:19:14",
+      "system": false
+    }
+  ],
+  "444": [
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Room '444' created by Frost Arcane",
+      "time": "19:54:46",
+      "system": true
+    }
+  ],
+  "555": [
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Global room '555' created by NYXX",
+      "time": "21:36:10",
+      "system": true
+    },
+    {
+      "user": "NYXX",
+      "user_id": "NYXX_MASTER",
+      "message": "dfdfdf",
+      "time": "21:36:13",
+      "system": false
+    },
+    {
+      "user": "NYXX",
+      "user_id": "NYXX_MASTER",
+      "message": "dfdf",
+      "time": "21:36:18",
+      "system": false
+    },
+    {
+      "user": "Cipher Warp",
+      "user_id": "02C134CD",
+      "message": "dfdfdf",
+      "time": "21:36:41",
+      "system": false
+    },
+    {
+      "user": "Cipher Warp",
+      "user_id": "02C134CD",
+      "message": "dfdfd",
+      "time": "21:36:47",
+      "system": false
+    },
+    {
+      "user": "Ion Chasm",
+      "user_id": "5642DF46",
+      "message": "dfdf",
+      "time": "21:49:48.552",
       "system": false
     }
   ]

@@ -182,6 +182,9 @@ h1{margin:0;font-size:2.2rem;font-weight:900;background:linear-gradient(45deg,#0
             0 0 80px #00FF88;
     }
 }
+.add-room {
+    pointer-events: auto !important;
+}
 </style>
 </head>
 <body>
@@ -221,7 +224,7 @@ let globalRooms = [];
 let userRooms = [];
 let isNyxx = false;
 let colorCache = {};
-let roomChatCounters = {};  
+let lastMessageTime = null; // 🔥 КЛЮЧЕВАЯ ПЕРЕМЕННАЯ
 
 function loadRoomsSeparated() {
     fetch('/rooms_separated_with_unread')
@@ -249,43 +252,72 @@ function renderRooms() {
     roomsList.appendChild(globalHeader);
     
     globalRooms.forEach(roomName => {
-        if (roomName === 'general') {
-            const generalItem = document.createElement('div');
-            generalItem.className = 'room-item general global-room' + (currentRoom === 'general' ? ' selected' : '');
-            generalItem.dataset.room = 'general';
-            generalItem.textContent = 'general';
-            generalItem.onclick = () => switchRoom('general');
-            
-            const unreadCount = window.unreadCounts['general'] || 0;
-            if (unreadCount > 0) {
-                const badge = document.createElement('div');
-                badge.className = 'unread-badge';
-                badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-                generalItem.appendChild(badge);
-            }
-            
-            roomsList.appendChild(generalItem);
-        } else {
+        const roomItem = document.createElement('div');
+        roomItem.className = `room-item global-room${currentRoom === roomName ? ' selected' : ''}${roomName === 'general' ? ' general' : ''}`;
+        roomItem.dataset.room = roomName;
+        
+        const roomText = document.createElement('span');
+        roomText.textContent = roomName;
+        roomItem.appendChild(roomText);
+        
+        if (isNyxx && roomName !== 'general') {
+            const deleteBtn = document.createElement('span');
+            deleteBtn.innerHTML = '✕';
+            deleteBtn.className = 'room-delete-btn';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (confirm(`Delete GLOBAL room "${roomName}"?`)) deleteUserRoom(roomName);
+            };
+            roomItem.appendChild(deleteBtn);
+        }
+        
+        const unreadCount = window.unreadCounts[roomName] || 0;
+        if (unreadCount > 0) {
+            const badge = document.createElement('div');
+            badge.className = 'unread-badge';
+            badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+            roomItem.appendChild(badge);
+        }
+        
+        roomItem.onclick = (e) => {
+            if (!e.target.classList.contains('room-delete-btn')) switchRoom(roomName);
+        };
+        roomsList.appendChild(roomItem);
+    });
+    
+    if (!isNyxx) {
+        const separator = document.createElement('div');
+        separator.style.cssText = 'height:12px;background:linear-gradient(90deg,transparent,#0f0,transparent);margin:10px 0';
+        roomsList.appendChild(separator);
+        
+        const userHeader = document.createElement('div');
+        userHeader.className = 'rooms-header';
+        userHeader.innerHTML = '<img src="/data/images/user-icon.png" class="user-icon"> USER';
+        userHeader.style.background = 'linear-gradient(145deg,rgba(0,255,136,0.1),transparent)';
+        roomsList.appendChild(userHeader);
+        
+        userRooms.forEach((roomName, index) => {
             const roomItem = document.createElement('div');
-            roomItem.className = 'room-item global-room' + (currentRoom === roomName ? ' selected' : '');
+            roomItem.className = `room-item user-room reorderable${currentRoom === roomName ? ' selected' : ''}`;
+            roomItem.draggable = true;
             roomItem.dataset.room = roomName;
+            roomItem.dataset.index = index;
+            roomItem.style.position = 'relative';
             
             const roomText = document.createElement('span');
             roomText.textContent = roomName;
+            roomText.style.paddingRight = '40px';
+            roomText.style.display = 'block';
             roomItem.appendChild(roomText);
             
-            if (isNyxx && roomName !== 'general') {
-                const deleteBtn = document.createElement('span');
-                deleteBtn.innerHTML = '✕';
-                deleteBtn.className = 'room-delete-btn';
-                deleteBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    if (confirm(`Delete GLOBAL room "${roomName}"?`)) {
-                        deleteUserRoom(roomName);
-                    }
-                };
-                roomItem.appendChild(deleteBtn);
-            }
+            const deleteBtn = document.createElement('span');
+            deleteBtn.innerHTML = '✕';
+            deleteBtn.className = 'room-delete-btn';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (confirm(`Delete room "${roomName}"?\nChat history will remain.`)) deleteUserRoom(roomName);
+            };
+            roomItem.appendChild(deleteBtn);
             
             const unreadCount = window.unreadCounts[roomName] || 0;
             if (unreadCount > 0) {
@@ -295,71 +327,11 @@ function renderRooms() {
                 roomItem.appendChild(badge);
             }
             
-            roomItem.onclick = (e) => { 
-                if (!e.target.classList.contains('room-delete-btn')) {
-                    switchRoom(roomName); 
-                }
+            roomItem.onclick = (e) => {
+                if (!e.target.classList.contains('room-delete-btn')) switchRoom(roomName);
             };
             roomsList.appendChild(roomItem);
-        }
-    });
-    
-    if (!isNyxx) {
-        const separator = document.createElement('div');
-        separator.style.height = '12px';
-        separator.style.background = 'linear-gradient(90deg,transparent,#0f0,transparent)';
-        separator.style.margin = '10px 0';
-        roomsList.appendChild(separator);
-        
-        const userHeader = document.createElement('div');
-        userHeader.className = 'rooms-header';
-        userHeader.innerHTML = '<img src="/data/images/user-icon.png" class="user-icon"> USER';
-        userHeader.style.background = 'linear-gradient(145deg,rgba(0,255,136,0.1),transparent)';
-        roomsList.appendChild(userHeader);
-        
-        if (userRooms.length > 0) {
-            userRooms.forEach(roomName => {
-                const roomItem = document.createElement('div');
-                roomItem.className = 'room-item user-room reorderable' + (currentRoom === roomName ? ' selected' : '');
-                roomItem.draggable = true;
-                roomItem.dataset.room = roomName;
-                roomItem.dataset.index = userRooms.indexOf(roomName);
-                roomItem.style.position = 'relative';
-                
-                const roomText = document.createElement('span');
-                roomText.textContent = roomName;
-                roomText.style.paddingRight = '20px';
-                roomText.style.display = 'block';
-                
-                const deleteBtn = document.createElement('span');
-                deleteBtn.innerHTML = '✕';
-                deleteBtn.className = 'room-delete-btn';
-                deleteBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    if (confirm(`Delete room "${roomName}"?\nChat history will remain.`)) {
-                        deleteUserRoom(roomName);
-                    }
-                };
-                
-                roomItem.appendChild(roomText);
-                roomItem.appendChild(deleteBtn);
-                
-                const unreadCount = window.unreadCounts[roomName] || 0;
-                if (unreadCount > 0) {
-                    const badge = document.createElement('div');
-                    badge.className = 'unread-badge';
-                    badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-                    roomItem.appendChild(badge);
-                }
-                
-                roomItem.onclick = (e) => { 
-                    if (!e.target.classList.contains('room-delete-btn')) {
-                        switchRoom(roomName); 
-                    }
-                };
-                roomsList.appendChild(roomItem);
-            });
-        }
+        });
         
         const addButton = document.createElement('div');
         addButton.className = 'room-item add-room';
@@ -369,9 +341,7 @@ function renderRooms() {
     } else {
         const nyxxAddButton = document.createElement('div');
         nyxxAddButton.className = 'room-item add-room';
-        nyxxAddButton.style.background = 'linear-gradient(145deg,#ff4444,#cc0000) !important';
-        nyxxAddButton.style.color = '#fff !important';
-        nyxxAddButton.style.borderColor = '#ff6666 !important';
+        nyxxAddButton.style.cssText = 'background:linear-gradient(145deg,#ff4444,#cc0000)!important;color:#fff!important;border-color:#ff6666!important';
         nyxxAddButton.textContent = '+';
         nyxxAddButton.onclick = showAddRoom;
         roomsList.appendChild(nyxxAddButton);
@@ -390,7 +360,7 @@ function deleteUserRoom(roomName) {
             loadRoomsSeparated();
             if (currentRoom === roomName) {
                 currentRoom = 'general';
-                updateChat();
+                loadFullChatHistory();
             }
         } else {
             alert(data.message);
@@ -423,10 +393,8 @@ function showAddRoom() {
 }
 
 function switchRoom(roomName) {
-    if (currentRoom && roomChatCounters[currentRoom] !== undefined) {
-    }
-    
     currentRoom = roomName;
+    lastMessageTime = null; // Сброс при переключении
     
     fetch('/mark_read', {
         method: 'POST',
@@ -441,124 +409,98 @@ function switchRoom(roomName) {
     if (targetRoom) targetRoom.classList.add('selected');
     
     loadFullChatHistory();
-    console.log('Switched to room:', roomName);
 }
 
 function loadFullChatHistory() {
-    fetch(`/chat_history?room=${currentRoom}`)
+    fetch(`/chat_history?room=${currentRoom}&t=${Date.now()}`)
     .then(response => response.json())
     .then(data => {
         chat.innerHTML = '';
-        
+        lastMessageTime = null;
+
         data.history.forEach(msg => {
-            const div = document.createElement('div');
-            if (msg.user_id === 'SYSTEM') {
-                div.className = 'message system-msg';
-                div.innerHTML = `<span class="time">[${msg.time}]</span> <span style="color: #FFFFFF; font-weight: bold; text-shadow: 0 0 10px #FFFFFF;">${msg.user}</span> ${msg.message}`;
-            }
-            else if (msg.user_id === 'NYXX_MASTER') {
-                div.className = 'message nyxx-message';
-                div.innerHTML = `<span class="time">[${msg.time}]</span> <span class="nyxx-glow">${msg.user}:</span> ${msg.message}`;
-            }
-            else if (msg.user === MY_USERNAME) {
-                div.className = 'message my-message';
-                div.innerHTML = `<span class="time">[${msg.time}]</span> <b>${msg.user}:</b> ${msg.message}`;
-            }
-            else {
-                const color = colorCache[msg.user_id] || '#ccc';
-                div.className = 'message other-message';
-                div.innerHTML = `<span class="time">[${msg.time}]</span> <span style="color: ${color}; text-shadow: 0 0 8px ${color};">${msg.user}:</span> ${msg.message}`;
-                
-                if (msg.user_id && !colorCache[msg.user_id]) {
-                    fetch(`/user_color/${msg.user_id}`)
-                    .then(r => r.json())
-                    .then(data => colorCache[msg.user_id] = data.color)
-                    .catch(() => {});
-                }
-            }
-            chat.appendChild(div);
+            appendMessage(msg);
+            lastMessageTime = msg.time; // запоминаем самое свежее
         });
-    
-        roomChatCounters[currentRoom] = data.history.length;
+        
         chat.scrollTop = chat.scrollHeight;
     })
     .catch(err => console.error('Full history load error:', err));
 }
 
+function appendMessage(msg) {
+    const div = document.createElement('div');
+    
+    if (msg.user_id === 'SYSTEM') {
+        div.className = 'message system-msg';
+        div.innerHTML = `<span class="time">[${msg.time}]</span> <span style="color: #FFFFFF; font-weight: bold; text-shadow: 0 0 10px #FFFFFF;">${msg.user}</span> ${msg.message}`;
+    }
+    else if (msg.user_id === 'NYXX_MASTER') {
+        div.className = 'message nyxx-message';
+        div.innerHTML = `<span class="time">[${msg.time}]</span> <span class="nyxx-glow">${msg.user}:</span> ${msg.message}`;
+    }
+    else if (msg.user === MY_USERNAME) {
+        div.className = 'message my-message';
+        div.innerHTML = `<span class="time">[${msg.time}]</span> <b>${msg.user}:</b> ${msg.message}`;
+    }
+    else {
+        const color = colorCache[msg.user_id] || '#ccc';
+        div.className = 'message other-message';
+        div.innerHTML = `<span class="time">[${msg.time}]</span> <span style="color: ${color}; text-shadow: 0 0 8px ${color};">${msg.user}:</span> ${msg.message}`;
+        
+        if (msg.user_id && !colorCache[msg.user_id]) {
+            fetch(`/user_color/${msg.user_id}`)
+            .then(r => r.json())
+            .then(data => colorCache[msg.user_id] = data.color)
+            .catch(() => {});
+        }
+    }
+    chat.appendChild(div);
+}
+
 function initDragAndDrop() {
     const roomsList = document.getElementById('rooms-list');
     
-    roomsList.addEventListener('dragstart', e => {
-        const item = e.target.closest('.reorderable');
-        if (item) {
-            draggedItem = item;
-            item.classList.add('dragging');
+    roomsList.addEventListener('dragstart', (e) => {
+        draggedItem = e.target.closest('.reorderable');
+        if (draggedItem) {
+            draggedItem.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', item.dataset.index);
         }
     });
     
-    roomsList.addEventListener('dragend', e => {
+    roomsList.addEventListener('dragend', (e) => {
         if (draggedItem) {
             draggedItem.classList.remove('dragging');
-            saveUserRoomsOrder();
             draggedItem = null;
         }
-        document.querySelectorAll('.room-item.drag-over').forEach(item => 
-            item.classList.remove('drag-over')
-        );
     });
     
-    roomsList.addEventListener('dragover', e => {
+    roomsList.addEventListener('dragover', (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
-        
-        const item = e.target.closest('.reorderable');
-        if (item && draggedItem !== item) {
-            item.classList.add('drag-over');
-            
-            const rect = item.getBoundingClientRect();
-            const midpoint = rect.top + rect.height / 2;
-            
-            if (e.clientY < midpoint) {
-                roomsList.insertBefore(draggedItem, item);
-            } else {
-                if (item.nextSibling && !item.nextSibling.classList.contains('add-room')) {
-                    roomsList.insertBefore(draggedItem, item.nextSibling);
-                } else {
-                    const addBtn = roomsList.querySelector('.add-room');
-                    if (addBtn) {
-                        roomsList.insertBefore(draggedItem, addBtn);
-                    } else {
-                        roomsList.appendChild(draggedItem);
-                    }
-                }
-            }
+        const target = e.target.closest('.reorderable');
+        if (!target || target === draggedItem) return;
+        const rect = target.getBoundingClientRect();
+        const nextElement = (e.clientY > rect.top + rect.height / 2) ? target.nextSibling : target;
+        if (nextElement && nextElement.classList && nextElement.classList.contains('add-room')) {
+            roomsList.insertBefore(draggedItem, target.nextSibling);
+        } else {
+            roomsList.insertBefore(draggedItem, nextElement);
         }
     });
     
-    roomsList.addEventListener('dragleave', e => {
-        const item = e.target.closest('.room-item');
-        if (item) item.classList.remove('drag-over');
-    });
-    
-    roomsList.addEventListener('drop', e => {
+    roomsList.addEventListener('drop', (e) => {
         e.preventDefault();
-        document.querySelectorAll('.room-item.drag-over').forEach(item => 
-            item.classList.remove('drag-over')
-        );
+        const reorderableItems = Array.from(roomsList.querySelectorAll('.reorderable'));
+        const newOrder = reorderableItems.map(item => item.dataset.room);
+        
+        fetch('/save_user_rooms_order', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({rooms: newOrder})
+        }).catch(err => console.error('Silent save failed:', err));
     });
-}
-
-function saveUserRoomsOrder() {
-    const reorderableItems = Array.from(document.querySelectorAll('.reorderable'));
-    const newOrder = reorderableItems.map(item => item.dataset.room);
-    
-    fetch('/save_user_rooms_order', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({rooms: newOrder})
-    }).catch(err => console.error('Order save error:', err));
 }
 
 function createParticle() {
@@ -580,55 +522,23 @@ function getCurrentUser() {
 }
 
 function updateChat() {
-    fetch(`/chat_history?room=${currentRoom}`)
+    const since = lastMessageTime || '';
+    fetch(`/chat_history?room=${currentRoom}&since=${encodeURIComponent(since)}&t=${Date.now()}`)
     .then(response => response.json())
     .then(data => {
-        const roomCounter = roomChatCounters[currentRoom] || 0;
+        if (data.history.length === 0) return;
         
-        if (data.history.length <= roomCounter) {
-            return;
-        }
-        
-        const newMessages = data.history.slice(roomCounter);
-        roomChatCounters[currentRoom] = data.history.length;
-        
-        newMessages.forEach(msg => {
-            const div = document.createElement('div');
-            
-            if (msg.user_id === 'SYSTEM') {
-                div.className = 'message system-msg';
-                div.innerHTML = `<span class="time">[${msg.time}]</span> <span style="color: #FFFFFF; font-weight: bold; text-shadow: 0 0 10px #FFFFFF;">${msg.user}</span> ${msg.message}`;
-            }
-            else if (msg.user_id === 'NYXX_MASTER') {
-                div.className = 'message nyxx-message';
-                div.innerHTML = `<span class="time">[${msg.time}]</span> <span class="nyxx-glow">${msg.user}:</span> ${msg.message}`;
-            }
-            else if (msg.user === MY_USERNAME) {
-                div.className = 'message my-message';
-                div.innerHTML = `<span class="time">[${msg.time}]</span> <b>${msg.user}:</b> ${msg.message}`;
-            }
-            else {
-                const color = colorCache[msg.user_id] || '#ccc';
-                div.className = 'message other-message';
-                div.innerHTML = `<span class="time">[${msg.time}]</span> <span style="color: ${color}; text-shadow: 0 0 8px ${color};">${msg.user}:</span> ${msg.message}`;
-                
-                if (msg.user_id && !colorCache[msg.user_id]) {
-                    fetch(`/user_color/${msg.user_id}`)
-                    .then(r => r.json())
-                    .then(data => {
-                        colorCache[msg.user_id] = data.color;
-                    }).catch(() => {});
-                }
-            }
-            
-            chat.appendChild(div);
+        data.history.forEach(msg => {
+            appendMessage(msg);
+            lastMessageTime = msg.time;
         });
         
         const wasAtBottom = chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 100;
         if (wasAtBottom) {
             chat.scrollTop = chat.scrollHeight;
         }
-    }).catch(err => console.error('Chat update error:', err));
+    })
+    .catch(err => console.error('Chat update error:', err));
 }
 
 function updateStatus() {
@@ -647,18 +557,6 @@ function updateStatus() {
     });
 }
 
-function sendMessage() {
-    let message = document.getElementById('input').value.trim();
-    if (!message) return;
-
-    fetch('/chat_send', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({message: message, room: currentRoom})
-    });
-    document.getElementById('input').value = '';
-}
-
 function logout() {
     fetch('/command', {
         method: 'POST',
@@ -667,12 +565,33 @@ function logout() {
     }).then(() => window.location.href = '/');
 }
 
-function refreshUnreadBadges() {
-    fetch('/rooms_separated_with_unread')
+function refreshUnreadOnly() {
+    fetch('/unread_counts_only')
     .then(r => r.json())
     .then(data => {
         window.unreadCounts = data.unread_counts || {};
-        renderRooms();
+        updateUnreadBadges();
+    });
+}
+
+function updateUnreadBadges() {
+    document.querySelectorAll('.room-item').forEach(item => {
+        const roomName = item.dataset.room;
+        const badge = item.querySelector('.unread-badge');
+        const count = window.unreadCounts[roomName] || 0;
+        
+        if (count > 0) {
+            if (!badge) {
+                const newBadge = document.createElement('div');
+                newBadge.className = 'unread-badge';
+                newBadge.textContent = count > 99 ? '99+' : count;
+                item.appendChild(newBadge);
+            } else {
+                badge.textContent = count > 99 ? '99+' : count;
+            }
+        } else if (badge) {
+            badge.remove();
+        }
     });
 }
 
@@ -684,19 +603,32 @@ document.addEventListener('DOMContentLoaded', () => {
     initDragAndDrop();
     loadRoomsSeparated();
     getCurrentUser();
-    
     loadFullChatHistory();
-    
     updateStatus();
-    setTimeout(refreshUnreadBadges, 1000);
+    setTimeout(refreshUnreadOnly, 1000);
 });
 
+function sendMessage() {
+    let message = document.getElementById('input').value.trim();
+    if (!message) return;
+
+    fetch('/chat_send', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message: message, room: currentRoom})
+    })
+    .then(() => {
+        // После отправки — сразу обновим чат (для мгновенного отображения своего сообщения)
+        updateChat();
+    });
+    document.getElementById('input').value = '';
+}
+
+// 🔥 ФОНОВОЕ ОБНОВЛЕНИЕ КАЖДЫЕ 800мс — РАБОТАЕТ ДЛЯ ЛЮБОЙ КОМНАТЫ!
 setInterval(() => {
     updateChat();
-    refreshUnreadBadges();
-}, 2000);
-setInterval(updateStatus, 5000);
-
+    refreshUnreadOnly();
+}, 800);
 </script>
 </body>
 </html>

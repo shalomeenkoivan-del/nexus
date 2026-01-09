@@ -14,9 +14,6 @@ import time
 from waitress import serve
 import hashlib
 
-last_save = 0
-SAVE_INTERVAL = 3.0
-
 chat_rooms_lock = threading.Lock()
 active_sessions_lock = threading.Lock()
 unread_counts_lock = threading.Lock()
@@ -28,7 +25,6 @@ app.secret_key = secrets.token_hex(32)
 auth_service = AuthService()
 room_storage = RoomStorage()
 
-DATA_DIR = DIRS["data"]
 USER_ROOMS_DIR = DIRS["user_rooms"]
 
 chat_rooms = room_storage.load_global_chat_rooms()
@@ -50,12 +46,6 @@ def load_user_rooms(user_id):
             return json.load(f)
     return ["general"]
 
-def get_all_visible_room_names(user_id: str) -> List[str]:
-    global_rooms = room_storage.load_global_room_names()
-    user_rooms = load_user_rooms(user_id)
-    personal_only = [r for r in user_rooms if r not in global_rooms]
-    return global_rooms + personal_only
-
 def save_user_rooms(user_id, user_rooms):
     file_path = get_user_rooms_file(user_id)
     with open(file_path, 'w') as f:
@@ -70,6 +60,15 @@ def get_user_color(user_id):
     
     hash_val = int(hashlib.md5(user_id.encode()).hexdigest(), 16) % 360
     return f"hsl({hash_val}, 70%, 60%)"
+
+@app.route('/unread_counts_only')
+def unread_counts_only():
+    if not session.get('logged_in'):  # 🔥 ДОБАВЬ!
+        return jsonify({'unread_counts': {}})
+    user_id = session['user_id']
+    with unread_counts_lock:
+        user_unread = unread_counts.get(user_id, {})
+    return jsonify({'unread_counts': user_unread})
 
 @app.route('/user_color/<user_id>')
 def user_color(user_id):
@@ -101,7 +100,7 @@ def command():
             active_sessions.add("NYXX_MASTER")
             
         with chat_rooms_lock:    
-            timestamp = datetime.now().strftime("%H:%M:%S")
+            timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
             chat_rooms["general"].append({
                 "user": "SYSTEM", "user_id": "SYSTEM",
                 "message": "NYXX(MASTER) entered the Shadows!", "time": timestamp, "system": True
@@ -141,7 +140,7 @@ def command():
             with active_sessions_lock:
                 active_sessions.add(user_data.user_id)
             with chat_rooms_lock:
-                timestamp = datetime.now().strftime("%H:%M:%S")
+                timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
                 chat_rooms["general"].append({
                     "user": "SYSTEM", "user_id": "SYSTEM",
                     "message": f"{user_data.username} entered the Shadows!", "time": timestamp, "system": True
@@ -153,7 +152,7 @@ def command():
     if session.get('logged_in') and cmd == "exit":
         user_id = session.get('user_id')
         with chat_rooms_lock:
-            timestamp = datetime.now().strftime("%H:%M:%S")
+            timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
             chat_rooms["general"].append({
                 "user": "SYSTEM", "user_id": "SYSTEM",
                 "message": f"{session.get('username')} left the Shadows", "time": timestamp, "system": True
@@ -179,7 +178,7 @@ def add_room():
 
     user_id = session['user_id']
     username = session['username']
-    timestamp = datetime.now().strftime("%H:%M:%S")
+    timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
 
     if user_id == "NYXX_MASTER":
         with chat_rooms_lock:
@@ -205,7 +204,6 @@ def add_room():
         return jsonify({
             'success': True,
             'message': f'Global room "{room_name}" created!',
-            'rooms': get_all_visible_room_names(user_id),
             'switch_to': room_name
         })
 
@@ -215,7 +213,6 @@ def add_room():
         return jsonify({
             'success': True,
             'message': f'Already in room "{room_name}"!',
-            'rooms': get_all_visible_room_names(user_id),
             'switch_to': room_name
         })
 
@@ -237,7 +234,6 @@ def add_room():
     return jsonify({
         'success': True,
         'message': f'{"Created" if room_name not in chat_rooms else "Joined"} room "{room_name}"!',
-        'rooms': get_all_visible_room_names(user_id),
         'switch_to': room_name
     })
 
@@ -260,7 +256,7 @@ def delete_room():
             with chat_rooms_lock:
                 if room_name in chat_rooms:
                     del chat_rooms[room_name]
-                timestamp = datetime.now().strftime("%H:%M:%S")
+                timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
                 chat_rooms["general"].append({
                     "user": "SYSTEM", "user_id": "SYSTEM",
                     "message": f"NYXX deleted global room \"{room_name}\"",
@@ -273,7 +269,6 @@ def delete_room():
             return jsonify({
                 'success': True,
                 'message': f'Global room "{room_name}" deleted by NYXX!',
-                'rooms': get_all_visible_room_names(user_id)
             })
         else:
             return jsonify({'success': False, 'message': 'Room not found'})
@@ -290,31 +285,9 @@ def delete_room():
         return jsonify({
             'success': True,
             'message': f'Room "{room_name}" removed!',
-            'rooms': get_all_visible_room_names(user_id)
         })
 
     return jsonify({'success': False, 'message': 'Room not found in your list'})
-
-@app.route('/rooms_separated')
-def get_rooms_separated():
-    if not session.get('logged_in'):
-        return jsonify({'global_rooms': [], 'user_rooms': []})
-    
-    user_id = session['user_id']
-    global_rooms_raw = room_storage.load_global_room_names()
-    
-    global_rooms = ['general']
-    other_globals = sorted([r for r in global_rooms_raw if r != 'general'])
-    global_rooms.extend(other_globals)
-    
-    user_rooms = load_user_rooms(user_id)
-    personal_rooms = [r for r in user_rooms if r not in global_rooms]
-    
-    return jsonify({
-        'global_rooms': global_rooms,
-        'user_rooms': personal_rooms,
-        'is_nyxx': user_id == "NYXX_MASTER"
-    })
 
 @app.route('/rooms_separated_with_unread')
 def get_rooms_separated_with_unread():
@@ -348,9 +321,9 @@ def save_user_rooms_order():
     
     data = request.json
     user_id = session['user_id']
-    new_order = data.get('rooms', [])
+    rooms = data.get('rooms', [])
     
-    save_user_rooms(user_id, new_order)
+    save_user_rooms(user_id, rooms)
     return jsonify({'success': True})
 
 @app.route('/mark_read', methods=['POST'])
@@ -365,20 +338,33 @@ def mark_read():
     mark_room_read(user_id, room_name)
     return jsonify({'success': True})
 
-@app.route('/rooms')
-def get_rooms():
-    if not session.get('logged_in'):
-        return jsonify({'rooms': []})
-    user_id = session['user_id']
-    rooms = get_all_visible_room_names(user_id)
-    return jsonify({'rooms': rooms})
-
 @app.route('/chat_history')
 def chat_history_route():
+    # 🔥 ДОБАВЛЕНО: поддержка since_timestamp
+    room = request.args.get('room', 'general').lower()
+    since = request.args.get('since')  # формат: "HH:MM:SS.mmm"
+
     with chat_rooms_lock:
-        room = request.args.get('room', 'general')
-        history = chat_rooms.get(room, [])[-50:]
-    return jsonify({'history': history})
+        full_history = chat_rooms.get(room, [])
+        if since:
+            try:
+                # Найдём индекс первого сообщения ПОСЛЕ since
+                for i, msg in enumerate(full_history):
+                    if msg["time"] > since:
+                        history = full_history[i:]
+                        break
+                else:
+                    history = []
+            except Exception:
+                history = full_history[-50:]
+        else:
+            history = full_history[-50:]
+
+    response = jsonify({'history': history})
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @app.route('/chat_send', methods=['POST'])
 def chat_send():
@@ -389,12 +375,13 @@ def chat_send():
     message = data.get('message', '').strip()
     room = data.get('room', 'general').lower()
     
-    with chat_rooms_lock:
-        if message and room in chat_rooms:
-            timestamp = datetime.now().strftime("%H:%M:%S")
-            sender_id = session['user_id']
-            sender_name = session['username']
-            
+    sender_id = session['user_id']
+    sender_name = session['username']
+    # 🔥 ИСПОЛЬЗУЕМ МИЛЛИСЕКУНДЫ!
+    timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]  # "12:34:56.789"
+    
+    if message and room in chat_rooms:
+        with chat_rooms_lock:
             chat_rooms[room].append({
                 "user": sender_name,
                 "user_id": sender_id,
@@ -402,16 +389,16 @@ def chat_send():
                 "time": timestamp,
                 "system": False
             })
-            
-            with unread_counts_lock:
-                for user_id in active_sessions:
-                    if user_id != sender_id and user_id in unread_counts:
-                        unread_counts[user_id][room] = unread_counts[user_id].get(room, 0) + 1
-                    elif user_id != sender_id:
-                        unread_counts[user_id] = {room: 1}
-            
-            return jsonify({'status': 'ok'})
-    return jsonify({'error': 'Room not found'})
+
+    # Обновляем unread для всех активных (кроме отправителя)
+    with unread_counts_lock:
+        for user_id in list(active_sessions):
+            if user_id != sender_id:
+                if user_id not in unread_counts:
+                    unread_counts[user_id] = {}
+                unread_counts[user_id][room] = unread_counts[user_id].get(room, 0) + 1
+    
+    return jsonify({'status': 'ok'})
 
 @app.route('/current_user')
 def current_user():
