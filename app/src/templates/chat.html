@@ -221,6 +221,7 @@ let globalRooms = [];
 let userRooms = [];
 let isNyxx = false;
 let colorCache = {};
+let roomChatCounters = {};  
 
 function loadRoomsSeparated() {
     fetch('/rooms_separated_with_unread')
@@ -422,6 +423,9 @@ function showAddRoom() {
 }
 
 function switchRoom(roomName) {
+    if (currentRoom && roomChatCounters[currentRoom] !== undefined) {
+    }
+    
     currentRoom = roomName;
     
     fetch('/mark_read', {
@@ -435,8 +439,50 @@ function switchRoom(roomName) {
     );
     const targetRoom = document.querySelector(`[data-room="${roomName}"]`);
     if (targetRoom) targetRoom.classList.add('selected');
-    updateChat();
+    
+    loadFullChatHistory();
     console.log('Switched to room:', roomName);
+}
+
+function loadFullChatHistory() {
+    fetch(`/chat_history?room=${currentRoom}`)
+    .then(response => response.json())
+    .then(data => {
+        chat.innerHTML = '';
+        
+        data.history.forEach(msg => {
+            const div = document.createElement('div');
+            if (msg.user_id === 'SYSTEM') {
+                div.className = 'message system-msg';
+                div.innerHTML = `<span class="time">[${msg.time}]</span> <span style="color: #FFFFFF; font-weight: bold; text-shadow: 0 0 10px #FFFFFF;">${msg.user}</span> ${msg.message}`;
+            }
+            else if (msg.user_id === 'NYXX_MASTER') {
+                div.className = 'message nyxx-message';
+                div.innerHTML = `<span class="time">[${msg.time}]</span> <span class="nyxx-glow">${msg.user}:</span> ${msg.message}`;
+            }
+            else if (msg.user === MY_USERNAME) {
+                div.className = 'message my-message';
+                div.innerHTML = `<span class="time">[${msg.time}]</span> <b>${msg.user}:</b> ${msg.message}`;
+            }
+            else {
+                const color = colorCache[msg.user_id] || '#ccc';
+                div.className = 'message other-message';
+                div.innerHTML = `<span class="time">[${msg.time}]</span> <span style="color: ${color}; text-shadow: 0 0 8px ${color};">${msg.user}:</span> ${msg.message}`;
+                
+                if (msg.user_id && !colorCache[msg.user_id]) {
+                    fetch(`/user_color/${msg.user_id}`)
+                    .then(r => r.json())
+                    .then(data => colorCache[msg.user_id] = data.color)
+                    .catch(() => {});
+                }
+            }
+            chat.appendChild(div);
+        });
+    
+        roomChatCounters[currentRoom] = data.history.length;
+        chat.scrollTop = chat.scrollHeight;
+    })
+    .catch(err => console.error('Full history load error:', err));
 }
 
 function initDragAndDrop() {
@@ -533,57 +579,56 @@ function getCurrentUser() {
     });
 }
 
-let lastMessageCount = 0; 
-
-async function updateChat() {
-    const response = await fetch(`/chat_history?room=${currentRoom}`);
-    const data = await response.json();
-    
-    if (data.history.length <= lastMessageCount) {
-        return;
-    }
-    
-    const newMessages = data.history.slice(lastMessageCount);
-    lastMessageCount = data.history.length;
-    
-    for (const msg of newMessages) {
-        if (msg.user_id && !colorCache[msg.user_id]) {
-            try {
-                const colorRes = await fetch(`/user_color/${msg.user_id}`);
-                const colorData = await colorRes.json();
-                colorCache[msg.user_id] = colorData.color;
-            } catch(e) {
-                colorCache[msg.user_id] = '#ccc';
+function updateChat() {
+    fetch(`/chat_history?room=${currentRoom}`)
+    .then(response => response.json())
+    .then(data => {
+        const roomCounter = roomChatCounters[currentRoom] || 0;
+        
+        if (data.history.length <= roomCounter) {
+            return;
+        }
+        
+        const newMessages = data.history.slice(roomCounter);
+        roomChatCounters[currentRoom] = data.history.length;
+        
+        newMessages.forEach(msg => {
+            const div = document.createElement('div');
+            
+            if (msg.user_id === 'SYSTEM') {
+                div.className = 'message system-msg';
+                div.innerHTML = `<span class="time">[${msg.time}]</span> <span style="color: #FFFFFF; font-weight: bold; text-shadow: 0 0 10px #FFFFFF;">${msg.user}</span> ${msg.message}`;
             }
-        }
+            else if (msg.user_id === 'NYXX_MASTER') {
+                div.className = 'message nyxx-message';
+                div.innerHTML = `<span class="time">[${msg.time}]</span> <span class="nyxx-glow">${msg.user}:</span> ${msg.message}`;
+            }
+            else if (msg.user === MY_USERNAME) {
+                div.className = 'message my-message';
+                div.innerHTML = `<span class="time">[${msg.time}]</span> <b>${msg.user}:</b> ${msg.message}`;
+            }
+            else {
+                const color = colorCache[msg.user_id] || '#ccc';
+                div.className = 'message other-message';
+                div.innerHTML = `<span class="time">[${msg.time}]</span> <span style="color: ${color}; text-shadow: 0 0 8px ${color};">${msg.user}:</span> ${msg.message}`;
+                
+                if (msg.user_id && !colorCache[msg.user_id]) {
+                    fetch(`/user_color/${msg.user_id}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        colorCache[msg.user_id] = data.color;
+                    }).catch(() => {});
+                }
+            }
+            
+            chat.appendChild(div);
+        });
         
-        const div = document.createElement('div');
-        
-        if (msg.user_id === 'SYSTEM') {
-            div.className = 'message system-msg';
-            div.innerHTML = `<span class="time">[${msg.time}]</span> <span style="color: #FFFFFF; font-weight: bold; text-shadow: 0 0 10px #FFFFFF;">${msg.user}</span> ${msg.message}`;
+        const wasAtBottom = chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 100;
+        if (wasAtBottom) {
+            chat.scrollTop = chat.scrollHeight;
         }
-        else if (msg.user_id === 'NYXX_MASTER') {
-            div.className = 'message nyxx-message';
-            div.innerHTML = `<span class="time">[${msg.time}]</span> <span class="nyxx-glow">${msg.user}:</span> ${msg.message}`;
-        }
-        else if (msg.user === MY_USERNAME) {
-            div.className = 'message my-message';
-            div.innerHTML = `<span class="time">[${msg.time}]</span> <b>${msg.user}:</b> ${msg.message}`;
-        }
-        else {
-            const color = colorCache[msg.user_id] || '#ccc';
-            div.className = 'message other-message';
-            div.innerHTML = `<span class="time">[${msg.time}]</span> <span style="color: ${color}; text-shadow: 0 0 8px ${color};">${msg.user}:</span> ${msg.message}`;
-        }
-        
-        chat.appendChild(div);
-    }
-    
-    const wasAtBottom = chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 100;
-    if (wasAtBottom) {
-        chat.scrollTop = chat.scrollHeight;
-    }
+    }).catch(err => console.error('Chat update error:', err));
 }
 
 function updateStatus() {
@@ -622,6 +667,15 @@ function logout() {
     }).then(() => window.location.href = '/');
 }
 
+function refreshUnreadBadges() {
+    fetch('/rooms_separated_with_unread')
+    .then(r => r.json())
+    .then(data => {
+        window.unreadCounts = data.unread_counts || {};
+        renderRooms();
+    });
+}
+
 document.getElementById('input').addEventListener('keypress', e => {
     if (e.key === 'Enter') sendMessage();
 });
@@ -631,35 +685,16 @@ document.addEventListener('DOMContentLoaded', () => {
     loadRoomsSeparated();
     getCurrentUser();
     
-    fetch(`/chat_history?room=${currentRoom}`)
-    .then(r => r.json())
-    .then(data => {
-        chat.innerHTML = '';
-        lastMessageCount = data.history.length;
-        
-        data.history.forEach(msg => {
-            const div = document.createElement('div');
-            if (msg.user_id === 'SYSTEM') {
-                div.className = 'message system-msg';
-                div.innerHTML = `<span class="time">[${msg.time}]</span> <span style="color: #FFFFFF; font-weight: bold; text-shadow: 0 0 10px #FFFFFF;">${msg.user}</span> ${msg.message}`;
-            } else if (msg.user_id === 'NYXX_MASTER') {
-                div.className = 'message nyxx-message';
-                div.innerHTML = `<span class="time">[${msg.time}]</span> <span class="nyxx-glow">${msg.user}:</span> ${msg.message}`;
-            } else if (msg.user === MY_USERNAME) {
-                div.className = 'message my-message';
-                div.innerHTML = `<span class="time">[${msg.time}]</span> <b>${msg.user}:</b> ${msg.message}`;
-            } else {
-                div.className = 'message other-message';
-                div.innerHTML = `<span class="time">[${msg.time}]</span> <b>${msg.user}:</b> ${msg.message}`;
-            }
-            chat.appendChild(div);
-        });
-    });
+    loadFullChatHistory();
     
     updateStatus();
+    setTimeout(refreshUnreadBadges, 1000);
 });
 
-setInterval(updateChat, 2000);
+setInterval(() => {
+    updateChat();
+    refreshUnreadBadges();
+}, 2000);
 setInterval(updateStatus, 5000);
 
 </script>
