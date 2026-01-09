@@ -30,6 +30,9 @@ USER_ROOMS_DIR = DIRS["user_rooms"]
 chat_rooms = room_storage.load_global_chat_rooms()
 active_sessions = set()
 
+user_current_room = {}  # user_id -> room_name
+user_current_room_lock = threading.Lock()
+
 def mark_room_read(user_id, room_name):
     with unread_counts_lock:
         if user_id in unread_counts:
@@ -60,6 +63,15 @@ def get_user_color(user_id):
     
     hash_val = int(hashlib.md5(user_id.encode()).hexdigest(), 16) % 360
     return f"hsl({hash_val}, 70%, 60%)"
+
+@app.route('/set_current_room', methods=['POST'])
+def set_current_room():
+    if not session.get('logged_in'):
+        return jsonify({'success': False})
+    room = request.json.get('room', 'general')
+    with user_current_room_lock:
+        user_current_room[session['user_id']] = room
+    return jsonify({'success': True})
 
 @app.route('/unread_counts_only')
 def unread_counts_only():
@@ -393,10 +405,17 @@ def chat_send():
     # Обновляем unread для всех активных (кроме отправителя)
     with unread_counts_lock:
         for user_id in list(active_sessions):
-            if user_id != sender_id:
-                if user_id not in unread_counts:
-                    unread_counts[user_id] = {}
-                unread_counts[user_id][room] = unread_counts[user_id].get(room, 0) + 1
+            if user_id == sender_id:
+                continue
+        # Проверяем, в какой комнате пользователь
+            with user_current_room_lock:
+                user_room = user_current_room.get(user_id, 'general')
+            if user_room == room:  # он в этой комнате — не считаем непрочитанным!
+                continue
+        # Иначе — увеличиваем счётчик
+            if user_id not in unread_counts:
+                unread_counts[user_id] = {}
+            unread_counts[user_id][room] = unread_counts[user_id].get(room, 0) + 1
     
     return jsonify({'status': 'ok'})
 

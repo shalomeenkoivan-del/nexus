@@ -224,7 +224,10 @@ let globalRooms = [];
 let userRooms = [];
 let isNyxx = false;
 let colorCache = {};
-let lastMessageTime = null; // 🔥 КЛЮЧЕВАЯ ПЕРЕМЕННАЯ
+let lastMessageTime = null;
+
+// 🔥 ЛОКАЛЬНЫЙ СЧЁТЧИК — НЕ ЗАВИСИМ ОТ СЕРВЕРА ДЛЯ АКТИВНОЙ КОМНАТЫ
+let localUnread = {};
 
 function loadRoomsSeparated() {
     fetch('/rooms_separated_with_unread')
@@ -232,7 +235,13 @@ function loadRoomsSeparated() {
     .then(data => {
         globalRooms = data.global_rooms || [];
         userRooms = data.user_rooms || [];
-        window.unreadCounts = data.unread_counts || {};
+        // 🔥 Инициализируем localUnread из сервера, но будем управлять сами
+        const serverUnread = data.unread_counts || {};
+        for (let room in serverUnread) {
+            if (room !== currentRoom) {
+                localUnread[room] = serverUnread[room];
+            }
+        }
         isNyxx = data.is_nyxx || false;
         renderRooms();
     })
@@ -271,8 +280,9 @@ function renderRooms() {
             roomItem.appendChild(deleteBtn);
         }
         
-        const unreadCount = window.unreadCounts[roomName] || 0;
-        if (unreadCount > 0) {
+        // 🔥 ИСПОЛЬЗУЕМ ЛОКАЛЬНЫЙ СЧЁТЧИК + УСЛОВИЕ
+        const unreadCount = (localUnread[roomName] || 0);
+        if (unreadCount > 0 && roomName !== currentRoom) {
             const badge = document.createElement('div');
             badge.className = 'unread-badge';
             badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
@@ -319,8 +329,8 @@ function renderRooms() {
             };
             roomItem.appendChild(deleteBtn);
             
-            const unreadCount = window.unreadCounts[roomName] || 0;
-            if (unreadCount > 0) {
+            const unreadCount = (localUnread[roomName] || 0);
+            if (unreadCount > 0 && roomName !== currentRoom) {
                 const badge = document.createElement('div');
                 badge.className = 'unread-badge';
                 badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
@@ -394,13 +404,16 @@ function showAddRoom() {
 
 function switchRoom(roomName) {
     currentRoom = roomName;
-    lastMessageTime = null; // Сброс при переключении
+    lastMessageTime = null;
     
-    fetch('/mark_read', {
+    fetch('/set_current_room', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({room: roomName})
     });
+    
+    // 🔥 ГАРАНТИРОВАННО СБРАСЫВАЕМ ЛОКАЛЬНЫЙ СЧЁТЧИК
+    localUnread[roomName] = 0;
     
     document.querySelectorAll('.room-item').forEach(item => 
         item.classList.remove('selected')
@@ -420,10 +433,20 @@ function loadFullChatHistory() {
 
         data.history.forEach(msg => {
             appendMessage(msg);
-            lastMessageTime = msg.time; // запоминаем самое свежее
+            lastMessageTime = msg.time;
         });
         
         chat.scrollTop = chat.scrollHeight;
+        
+        // 🔥 После загрузки — сбрасываем счётчик на сервере И локально
+        fetch('/mark_read', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({room: currentRoom})
+        }).then(() => {
+            localUnread[currentRoom] = 0;
+            updateUnreadBadges();
+        });
     })
     .catch(err => console.error('Full history load error:', err));
 }
@@ -565,22 +588,14 @@ function logout() {
     }).then(() => window.location.href = '/');
 }
 
-function refreshUnreadOnly() {
-    fetch('/unread_counts_only')
-    .then(r => r.json())
-    .then(data => {
-        window.unreadCounts = data.unread_counts || {};
-        updateUnreadBadges();
-    });
-}
-
+// 🔥 ОБНОВЛЕНИЕ БЕЙДЖЕЙ — ТОЛЬКО ПО ЛОКАЛЬНОМУ СЧЁТЧИКУ
 function updateUnreadBadges() {
     document.querySelectorAll('.room-item').forEach(item => {
         const roomName = item.dataset.room;
         const badge = item.querySelector('.unread-badge');
-        const count = window.unreadCounts[roomName] || 0;
+        const count = localUnread[roomName] || 0;
         
-        if (count > 0) {
+        if (count > 0 && roomName !== currentRoom) {
             if (!badge) {
                 const newBadge = document.createElement('div');
                 newBadge.className = 'unread-badge';
@@ -595,6 +610,21 @@ function updateUnreadBadges() {
     });
 }
 
+// 🔥 ФУНКЦИЯ ДЛЯ ОБНОВЛЕНИЯ ЛОКАЛЬНОГО СЧЁТЧИКА ИЗ СЕРВЕРА (НО БЕЗ АКТИВНОЙ КОМНАТЫ)
+function refreshLocalUnreadFromServer() {
+    fetch('/unread_counts_only')
+    .then(r => r.json())
+    .then(data => {
+        const serverUnread = data.unread_counts || {};
+        for (let room in serverUnread) {
+            if (room !== currentRoom) {
+                localUnread[room] = serverUnread[room];
+            }
+        }
+        updateUnreadBadges();
+    });
+}
+
 document.getElementById('input').addEventListener('keypress', e => {
     if (e.key === 'Enter') sendMessage();
 });
@@ -604,8 +634,15 @@ document.addEventListener('DOMContentLoaded', () => {
     loadRoomsSeparated();
     getCurrentUser();
     loadFullChatHistory();
+    
+    fetch('/set_current_room', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({room: 'general'})
+    });
+
     updateStatus();
-    setTimeout(refreshUnreadOnly, 1000);
+    setTimeout(refreshLocalUnreadFromServer, 1000);
 });
 
 function sendMessage() {
@@ -618,16 +655,15 @@ function sendMessage() {
         body: JSON.stringify({message: message, room: currentRoom})
     })
     .then(() => {
-        // После отправки — сразу обновим чат (для мгновенного отображения своего сообщения)
         updateChat();
     });
     document.getElementById('input').value = '';
 }
 
-// 🔥 ФОНОВОЕ ОБНОВЛЕНИЕ КАЖДЫЕ 800мс — РАБОТАЕТ ДЛЯ ЛЮБОЙ КОМНАТЫ!
+// 🔥 ФОНОВОЕ ОБНОВЛЕНИЕ
 setInterval(() => {
     updateChat();
-    refreshUnreadOnly();
+    refreshLocalUnreadFromServer(); // обновляем только НЕактивные комнаты
 }, 800);
 </script>
 </body>
