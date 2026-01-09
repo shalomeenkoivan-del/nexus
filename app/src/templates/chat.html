@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html>
+<head><title>Nexus Chat</title>
+<link rel="icon" href="data:," />
+<style>
+#chat * {
+    will-change: transform;
+}
+
+#chat {
+    transform: translateZ(0);
+}
+.global-icon { width: 24px; height: 24px; margin-right: 8px; vertical-align: middle; filter: drop-shadow(0 0 4px #ff4444); }
+.user-icon { width: 24px; height: 24px; margin-right: 8px; vertical-align: middle; filter: drop-shadow(0 0 4px #00ff88); }
+body{font-family:monospace;background:linear-gradient(45deg,#111,#000,#111);color:#0f0;padding:20px;position:relative;overflow:hidden;}
+body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(circle at 20% 80%,rgba(0,255,136,0.1) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(255,68,68,0.1) 0%,transparent 50%),radial-gradient(circle at 40% 40%,rgba(0,255,0,0.05) 0%,transparent 30%);animation:backgroundShift 10s ease-in-out infinite;z-index:-1;}
+.particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;overflow:hidden;}
+.particle{position:absolute;background:#0f0;border-radius:50%;animation:floatParticle 8s infinite linear;}
+.container{display:flex;height:calc(100vh - 60px);gap:10px;padding:10px;}
+.chat-container{flex:3;display:flex;flex-direction:column;border:2px solid #0f0;box-shadow:0 0 40px #0f0,inset 0 0 20px rgba(0,255,0,0.1);background:linear-gradient(145deg,#000,#111);overflow:hidden;position:relative;}
+#chat{flex:1;overflow-y:scroll;border:none;box-shadow:none;padding:15px;background:transparent;margin:0;position:relative;overflow-x:hidden;}
+#chat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#0f0,#00ff88,transparent);animation:scanline 3s linear infinite;}
+#chat::-webkit-scrollbar{width:8px;}
+#chat::-webkit-scrollbar-track{background:#111;}
+#chat::-webkit-scrollbar-thumb{background:linear-gradient(#0f0,#00ff88);border-radius:4px;}
+#chat::-webkit-scrollbar-thumb:hover{background:linear-gradient(#00ff88,#0f0);}
+.separator-line{height:2px;background:linear-gradient(90deg,transparent,#0f0,#00ff88,transparent);margin:15px 0;animation:scanline 3s linear infinite;}
+.input-row{display:flex;align-items:center;gap:10px;padding:15px;background:rgba(0,0,0,0.3);border-top:1px solid #0f0;}
+#input{flex:1;padding:20px;background:linear-gradient(145deg,#222,#111);color:#0f0;border:2px solid #0f0;box-shadow:0 0 20px rgba(0,255,0,0.3);font-size:16px;font-family:monospace;transition:all 0.3s ease;}
+#input:focus{outline:none;box-shadow:0 0 30px #0f0,0 0 50px rgba(0,255,136,0.5);border-color:#00ff88;}
+button{padding:20px 30px;background:linear-gradient(145deg,#0f0,#00ff88);color:#000;border:none;cursor:pointer;font-size:16px;font-family:monospace;font-weight:bold;text-shadow:0 1px 2px #000;box-shadow:0 5px 15px rgba(0,255,0,0.4);transition:all 0.3s ease;position:relative;overflow:hidden;}
+button:hover{background:linear-gradient(145deg,#00ff88,#0f0);box-shadow:0 8px 25px rgba(0,255,136,0.6),0 0 40px rgba(0,255,0,0.5);transform:translateY(-2px);}
+button:active{transform:translateY(0);}
+#logout-btn{background:linear-gradient(145deg,#f00,#cc0000) !important;box-shadow:0 5px 15px rgba(255,0,0,0.4) !important;}
+#logout-btn:hover{background:linear-gradient(145deg,#cc0000,#f00) !important;box-shadow:0 8px 25px rgba(255,68,68,0.6),0 0 40px rgba(255,0,0,0.5) !important;}
+.message{margin:8px 0;font-size:15px;}
+.time{color:#888;}
+.system-msg{color:#00ff88;font-style:italic;font-weight:normal;text-shadow:0 0 5px #00ff88;}
+.my-message{color:#00ff00 !important;font-weight:bold;text-shadow:0 0 8px #00ff00;}
+.my-message b{color:#00ff00 !important;}
+.other-message{color:#ffffff;}
+.other-message b{color:#cccccc;}
+.nyxx-message{color:#ff4444 !important;font-weight:bold !important;text-shadow:0 0 10px #ff0000,0 0 20px #ff4444;}
+.nyxx-message b{color:#ff6666 !important;}
+.nyxx-enter{color:#ff4444 !important;font-weight:bold !important;text-shadow:0 0 10px #ff0000,0 0 20px #ff4444;font-style:italic;}
+.header-bar{display:flex;align-items:center;gap:15px;padding:10px 15px;border-bottom:1px solid #0f0;background:rgba(0,0,0,0.3);}
+.header-avatar{width:60px;height:60px;border-radius:8px;border:2px solid #0f0;box-shadow:0 0 20px rgba(0,255,0,0.5);flex-shrink:0;transition:all 0.3s ease;}
+.header-avatar:hover{box-shadow:0 0 30px rgba(0,255,136,0.8),0 0 40px rgba(0,255,0,0.6);}
+.header-title{flex:1;display:flex;flex-direction:column;}
+h1{margin:0;font-size:2.2rem;font-weight:900;background:linear-gradient(45deg,#0f0,#00ff88,#0f0);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:glowText 2s ease-in-out infinite alternate,shimmer 3s linear infinite;text-shadow:0 0 20px #0f0;}
+#status-text{color:#ffffff !important;font-weight:bold !important;font-size:13px;margin:0;padding:0;background:none;border:none;text-shadow:0 0 5px #ffffff;}
+.rooms-panel{flex:1;border:2px solid #0f0;box-shadow:0 0 40px #0f0,inset 0 0 20px rgba(0,255,0,0.1);background:linear-gradient(145deg,#000,#111);display:flex;flex-direction:column;overflow:hidden;position:relative;}
+.rooms-header{color:#00ff88;font-weight:bold;padding:15px;background:linear-gradient(145deg,rgba(0,255,136,0.1),transparent);border-bottom:2px solid #0f0;text-shadow:0 0 10px #00ff88;font-size:16px;}
+.rooms-list{flex:1;padding:15px;overflow-y:auto;}
+.room-item{padding:12px 15px;margin:8px 0;border-radius:6px;cursor:pointer;transition:all 0.3s ease;color:#0f0;font-family:monospace;font-size:14px;text-shadow:0 0 5px #0f0;background:rgba(0,255,0,0.08);border:1px solid rgba(0,255,0,0.3);user-select:none;position:relative;}
+.room-item:hover{background:rgba(0,255,136,0.2);border-color:#00ff88;box-shadow:0 0 15px rgba(0,255,0,0.4);transform:translateX(3px);}
+.room-item.general{background:linear-gradient(145deg,#00ff88,#0f0);color:#000;border:2px solid #00ff88;font-weight:bold;text-shadow:none;box-shadow:0 0 20px rgba(0,255,136,0.6);position:sticky;top:0;z-index:10;}
+.room-item.general:hover{background:linear-gradient(145deg,#0f0,#00ff88) !important;transform:none !important;}
+.room-item.selected{background:linear-gradient(145deg,#ff4444,#cc0000);color:#fff;border:1px solid #ff6666;text-shadow:0 0 8px #ff4444;font-weight:bold;}
+.room-item.add-room{background:linear-gradient(145deg,rgba(0,255,136,0.2),rgba(0,255,0,0.1));color:#00ff88;font-size:24px;font-weight:bold;text-align:center;line-height:1.2;border:2px solid #00ff88;text-shadow:0 0 10px #00ff88;}
+.global-room {
+    background: linear-gradient(145deg, #ff4444, #cc0000) !important;
+    color: #fff !important;
+    border: 2px solid #ff6666 !important;
+    font-weight: bold !important;
+    text-shadow: 0 0 8px #ff4444 !important;
+    margin-bottom: 5px !important;
+}
+.global-room:hover {
+    background: linear-gradient(145deg, #cc0000, #ff4444) !important;
+    box-shadow: 0 0 20px rgba(255, 68, 68, 0.8) !important;
+}
+.global-room.selected {
+    background: linear-gradient(145deg, #00ff88, #0f0) !important;
+    color: #000 !important;
+    border-color: #00ff88 !important;
+}
+.user-room {
+    background: rgba(0,255,136,0.08) !important;
+    border: 1px solid rgba(0,255,136,0.4) !important;
+}
+.user-room:hover {
+    background: rgba(0,255,136,0.25) !important;
+    border-color: #00ff88 !important;
+}
+.room-delete-btn {
+    position: absolute !important; 
+    right: 8px; top: 50%; 
+    transform: translateY(-50%); 
+    color: #ff4444 !important; 
+    font-size: 12px !important; 
+    font-weight: bold !important; 
+    cursor: pointer !important; 
+    opacity: 0.7 !important; 
+    transition: all 0.2s !important;
+    text-shadow: 0 0 3px #ff0000 !important;
+    pointer-events: auto !important;
+    background: rgba(255,0,0,0.2);
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: monospace !important;
+}
+.room-delete-btn:hover {
+    opacity: 1 !important;
+    background: rgba(255,68,68,0.4) !important;
+    transform: translateY(-50%) scale(1.2) !important;
+}
+.unread-badge {
+    position: absolute !important;
+    top: 50% !important;
+    right: 28px !important;
+    transform: translateY(-50%) !important;
+    background: linear-gradient(145deg, #ff4444, #cc0000) !important;
+    color: #fff !important;
+    border: 1px solid #ff6666 !important;
+    border-radius: 50% !important;
+    width: 18px !important;
+    height: 18px !important;
+    font-size: 10px !important;
+    font-weight: bold !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-shadow: 0 0 3px #ff0000 !important;
+    box-shadow: 0 0 8px rgba(255,68,68,0.8) !important;
+    animation: pulse 1s infinite !important;
+    z-index: 20 !important;
+    min-width: 18px !important;
+}
+@keyframes pulse {
+    0%, 100% { transform: translateY(-50%) scale(1); }
+    50% { transform: translateY(-50%) scale(1.15); }
+}
+.room-item:hover .room-delete-btn {
+    opacity: 1 !important;
+}
+.room-item.dragging{opacity:0.5;transform:rotate(5deg);}
+.room-item.drag-over {
+    background: rgba(255,68,68,0.4) !important;
+    border-color: #ff4444 !important;
+    transform: translateX(5px) scale(1.02) !important;
+}
+.rooms-list::-webkit-scrollbar{width:6px;}
+.rooms-list::-webkit-scrollbar-track{background:#111;}
+.rooms-list::-webkit-scrollbar-thumb{background:linear-gradient(#0f0,#00ff88);border-radius:3px;}
+.rooms-list::-webkit-scrollbar-thumb:hover{background:linear-gradient(#00ff88,#0f0);}
+@keyframes glowText{0%{filter:drop-shadow(0 0 10px #0f0);}100%{filter:drop-shadow(0 0 30px #0f0) drop-shadow(0 0 50px #00ff88);}}
+@keyframes shimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes scanline{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@keyframes backgroundShift{0%,100%{background-position:0% 50%,50% 50%,20% 80%}50%{background-position:100% 50%,100% 50%,80% 20%}}
+@keyframes floatParticle{0%{transform:translateY(100vh) rotate(0deg);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-100px) rotate(360deg);opacity:0}}
+.nyxx-glow {
+    color: #00FF88 !important;
+    font-weight: 900 !important;
+    text-shadow: 
+        0 0 15px #00FF88,
+        0 0 25px #00FF88,
+        0 0 40px #00FF88 !important;
+    animation: nyxxGlow 2s ease-in-out infinite alternate !important;
+}
+.system-msg span[style*="FFFFFF"] {
+    color: #FFFFFF !important;
+    text-shadow: 0 0 10px #FFFFFF !important;
+    font-weight: bold !important;
+}
+@keyframes nyxxGlow {
+    0% { 
+        text-shadow: 
+            0 0 15px #00FF88, 
+            0 0 30px #00FF88,
+            0 0 50px #00FF88;
+    }
+    100% { 
+        text-shadow: 
+            0 0 25px #00FF88, 
+            0 0 40px #00FF88,
+            0 0 60px #00FF88,
+            0 0 80px #00FF88;
+    }
+}
+</style>
+</head>
+<body>
+<div class="particles" id="particles"></div>
+
+<div class="container">
+    <div class="chat-container">
+        <div class="header-bar">
+            <img id="status-avatar" class="header-avatar" src="/data/images/avatar.png" alt="Avatar">
+            <div class="header-title">
+                <h1>Nexus Chat</h1>
+                <div id="status-text">Loading...</div>
+            </div>
+        </div>
+        <div id="chat"></div>
+        <div class="separator-line"></div>
+        <div class="input-row">
+            <input type="text" id="input" placeholder="Type your message..." autofocus>
+            <button onclick="sendMessage()">Send</button>
+            <button id="logout-btn" onclick="logout()">Log out</button>
+        </div>
+    </div>
+
+    <div class="rooms-panel">
+        <div class="rooms-header" style="text-align: center;">SHADOW ROOMS</div>
+        <div class="rooms-list" id="rooms-list">
+        </div>
+    </div>
+</div>
+
+<script>
+let chat = document.getElementById('chat');
+let MY_USERNAME = null;
+let currentRoom = 'general';
+let draggedItem = null;
+let globalRooms = [];
+let userRooms = [];
+let isNyxx = false;
+let colorCache = {};
+
+function loadRoomsSeparated() {
+    fetch('/rooms_separated_with_unread')
+    .then(r => r.json())
+    .then(data => {
+        globalRooms = data.global_rooms || [];
+        userRooms = data.user_rooms || [];
+        window.unreadCounts = data.unread_counts || {};
+        isNyxx = data.is_nyxx || false;
+        renderRooms();
+    })
+    .catch(err => console.error('Rooms load error:', err));
+}
+
+function renderRooms() {
+    const roomsList = document.getElementById('rooms-list');
+    roomsList.innerHTML = '';
+    
+    const globalHeader = document.createElement('div');
+    globalHeader.className = 'rooms-header';
+    globalHeader.innerHTML = '<img src="/data/images/global-icon.png" class="global-icon"> GLOBAL';
+    globalHeader.style.background = 'linear-gradient(145deg,rgba(255,68,68,0.2),rgba(255,0,0,0.1))';
+    globalHeader.style.color = '#ff4444';
+    globalHeader.style.textShadow = '0 0 10px #ff4444';
+    roomsList.appendChild(globalHeader);
+    
+    globalRooms.forEach(roomName => {
+        if (roomName === 'general') {
+            const generalItem = document.createElement('div');
+            generalItem.className = 'room-item general global-room' + (currentRoom === 'general' ? ' selected' : '');
+            generalItem.dataset.room = 'general';
+            generalItem.textContent = 'general';
+            generalItem.onclick = () => switchRoom('general');
+            
+            const unreadCount = window.unreadCounts['general'] || 0;
+            if (unreadCount > 0) {
+                const badge = document.createElement('div');
+                badge.className = 'unread-badge';
+                badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                generalItem.appendChild(badge);
+            }
+            
+            roomsList.appendChild(generalItem);
+        } else {
+            const roomItem = document.createElement('div');
+            roomItem.className = 'room-item global-room' + (currentRoom === roomName ? ' selected' : '');
+            roomItem.dataset.room = roomName;
+            
+            const roomText = document.createElement('span');
+            roomText.textContent = roomName;
+            roomItem.appendChild(roomText);
+            
+            if (isNyxx && roomName !== 'general') {
+                const deleteBtn = document.createElement('span');
+                deleteBtn.innerHTML = '✕';
+                deleteBtn.className = 'room-delete-btn';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    if (confirm(`Delete GLOBAL room "${roomName}"?`)) {
+                        deleteUserRoom(roomName);
+                    }
+                };
+                roomItem.appendChild(deleteBtn);
+            }
+            
+            const unreadCount = window.unreadCounts[roomName] || 0;
+            if (unreadCount > 0) {
+                const badge = document.createElement('div');
+                badge.className = 'unread-badge';
+                badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                roomItem.appendChild(badge);
+            }
+            
+            roomItem.onclick = (e) => { 
+                if (!e.target.classList.contains('room-delete-btn')) {
+                    switchRoom(roomName); 
+                }
+            };
+            roomsList.appendChild(roomItem);
+        }
+    });
+    
+    if (!isNyxx) {
+        const separator = document.createElement('div');
+        separator.style.height = '12px';
+        separator.style.background = 'linear-gradient(90deg,transparent,#0f0,transparent)';
+        separator.style.margin = '10px 0';
+        roomsList.appendChild(separator);
+        
+        const userHeader = document.createElement('div');
+        userHeader.className = 'rooms-header';
+        userHeader.innerHTML = '<img src="/data/images/user-icon.png" class="user-icon"> USER';
+        userHeader.style.background = 'linear-gradient(145deg,rgba(0,255,136,0.1),transparent)';
+        roomsList.appendChild(userHeader);
+        
+        if (userRooms.length > 0) {
+            userRooms.forEach(roomName => {
+                const roomItem = document.createElement('div');
+                roomItem.className = 'room-item user-room reorderable' + (currentRoom === roomName ? ' selected' : '');
+                roomItem.draggable = true;
+                roomItem.dataset.room = roomName;
+                roomItem.dataset.index = userRooms.indexOf(roomName);
+                roomItem.style.position = 'relative';
+                
+                const roomText = document.createElement('span');
+                roomText.textContent = roomName;
+                roomText.style.paddingRight = '20px';
+                roomText.style.display = 'block';
+                
+                const deleteBtn = document.createElement('span');
+                deleteBtn.innerHTML = '✕';
+                deleteBtn.className = 'room-delete-btn';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    if (confirm(`Delete room "${roomName}"?\nChat history will remain.`)) {
+                        deleteUserRoom(roomName);
+                    }
+                };
+                
+                roomItem.appendChild(roomText);
+                roomItem.appendChild(deleteBtn);
+                
+                const unreadCount = window.unreadCounts[roomName] || 0;
+                if (unreadCount > 0) {
+                    const badge = document.createElement('div');
+                    badge.className = 'unread-badge';
+                    badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    roomItem.appendChild(badge);
+                }
+                
+                roomItem.onclick = (e) => { 
+                    if (!e.target.classList.contains('room-delete-btn')) {
+                        switchRoom(roomName); 
+                    }
+                };
+                roomsList.appendChild(roomItem);
+            });
+        }
+        
+        const addButton = document.createElement('div');
+        addButton.className = 'room-item add-room';
+        addButton.textContent = '+';
+        addButton.onclick = showAddRoom;
+        roomsList.appendChild(addButton);
+    } else {
+        const nyxxAddButton = document.createElement('div');
+        nyxxAddButton.className = 'room-item add-room';
+        nyxxAddButton.style.background = 'linear-gradient(145deg,#ff4444,#cc0000) !important';
+        nyxxAddButton.style.color = '#fff !important';
+        nyxxAddButton.style.borderColor = '#ff6666 !important';
+        nyxxAddButton.textContent = '+';
+        nyxxAddButton.onclick = showAddRoom;
+        roomsList.appendChild(nyxxAddButton);
+    }
+}
+
+function deleteUserRoom(roomName) {
+    fetch('/delete_room', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({room: roomName})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            loadRoomsSeparated();
+            if (currentRoom === roomName) {
+                currentRoom = 'general';
+                updateChat();
+            }
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(err => console.error('Delete error:', err));
+}
+
+function showAddRoom() {
+    let roomName = prompt('Enter room name or username:');
+    if (roomName && roomName.toLowerCase() !== 'general') {
+        fetch('/add_room', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({room: roomName})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                loadRoomsSeparated();
+                if (data.switch_to) {
+                    switchRoom(data.switch_to);
+                }
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => console.error('Error:', err));
+    }
+}
+
+function switchRoom(roomName) {
+    currentRoom = roomName;
+    
+    fetch('/mark_read', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({room: roomName})
+    });
+    
+    document.querySelectorAll('.room-item').forEach(item => 
+        item.classList.remove('selected')
+    );
+    const targetRoom = document.querySelector(`[data-room="${roomName}"]`);
+    if (targetRoom) targetRoom.classList.add('selected');
+    updateChat();
+    console.log('Switched to room:', roomName);
+}
+
+function initDragAndDrop() {
+    const roomsList = document.getElementById('rooms-list');
+    
+    roomsList.addEventListener('dragstart', e => {
+        const item = e.target.closest('.reorderable');
+        if (item) {
+            draggedItem = item;
+            item.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', item.dataset.index);
+        }
+    });
+    
+    roomsList.addEventListener('dragend', e => {
+        if (draggedItem) {
+            draggedItem.classList.remove('dragging');
+            saveUserRoomsOrder();
+            draggedItem = null;
+        }
+        document.querySelectorAll('.room-item.drag-over').forEach(item => 
+            item.classList.remove('drag-over')
+        );
+    });
+    
+    roomsList.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        
+        const item = e.target.closest('.reorderable');
+        if (item && draggedItem !== item) {
+            item.classList.add('drag-over');
+            
+            const rect = item.getBoundingClientRect();
+            const midpoint = rect.top + rect.height / 2;
+            
+            if (e.clientY < midpoint) {
+                roomsList.insertBefore(draggedItem, item);
+            } else {
+                if (item.nextSibling && !item.nextSibling.classList.contains('add-room')) {
+                    roomsList.insertBefore(draggedItem, item.nextSibling);
+                } else {
+                    const addBtn = roomsList.querySelector('.add-room');
+                    if (addBtn) {
+                        roomsList.insertBefore(draggedItem, addBtn);
+                    } else {
+                        roomsList.appendChild(draggedItem);
+                    }
+                }
+            }
+        }
+    });
+    
+    roomsList.addEventListener('dragleave', e => {
+        const item = e.target.closest('.room-item');
+        if (item) item.classList.remove('drag-over');
+    });
+    
+    roomsList.addEventListener('drop', e => {
+        e.preventDefault();
+        document.querySelectorAll('.room-item.drag-over').forEach(item => 
+            item.classList.remove('drag-over')
+        );
+    });
+}
+
+function saveUserRoomsOrder() {
+    const reorderableItems = Array.from(document.querySelectorAll('.reorderable'));
+    const newOrder = reorderableItems.map(item => item.dataset.room);
+    
+    fetch('/save_user_rooms_order', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({rooms: newOrder})
+    }).catch(err => console.error('Order save error:', err));
+}
+
+function createParticle() {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.width = particle.style.height = (Math.random() * 4 + 1) + 'px';
+    particle.style.animationDuration = (Math.random() * 3 + 5) + 's';
+    particle.style.animationDelay = Math.random() * 2 + 's';
+    document.getElementById('particles').appendChild(particle);
+    setTimeout(() => particle.remove(), 9000);
+}
+setInterval(createParticle, 200);
+
+function getCurrentUser() {
+    fetch('/current_user').then(r => r.json()).then(data => {
+        MY_USERNAME = data.username;
+    });
+}
+
+let lastMessageCount = 0; 
+
+async function updateChat() {
+    const response = await fetch(`/chat_history?room=${currentRoom}`);
+    const data = await response.json();
+    
+    if (data.history.length <= lastMessageCount) {
+        return;
+    }
+    
+    const newMessages = data.history.slice(lastMessageCount);
+    lastMessageCount = data.history.length;
+    
+    for (const msg of newMessages) {
+        if (msg.user_id && !colorCache[msg.user_id]) {
+            try {
+                const colorRes = await fetch(`/user_color/${msg.user_id}`);
+                const colorData = await colorRes.json();
+                colorCache[msg.user_id] = colorData.color;
+            } catch(e) {
+                colorCache[msg.user_id] = '#ccc';
+            }
+        }
+        
+        const div = document.createElement('div');
+        
+        if (msg.user_id === 'SYSTEM') {
+            div.className = 'message system-msg';
+            div.innerHTML = `<span class="time">[${msg.time}]</span> <span style="color: #FFFFFF; font-weight: bold; text-shadow: 0 0 10px #FFFFFF;">${msg.user}</span> ${msg.message}`;
+        }
+        else if (msg.user_id === 'NYXX_MASTER') {
+            div.className = 'message nyxx-message';
+            div.innerHTML = `<span class="time">[${msg.time}]</span> <span class="nyxx-glow">${msg.user}:</span> ${msg.message}`;
+        }
+        else if (msg.user === MY_USERNAME) {
+            div.className = 'message my-message';
+            div.innerHTML = `<span class="time">[${msg.time}]</span> <b>${msg.user}:</b> ${msg.message}`;
+        }
+        else {
+            const color = colorCache[msg.user_id] || '#ccc';
+            div.className = 'message other-message';
+            div.innerHTML = `<span class="time">[${msg.time}]</span> <span style="color: ${color}; text-shadow: 0 0 8px ${color};">${msg.user}:</span> ${msg.message}`;
+        }
+        
+        chat.appendChild(div);
+    }
+    
+    const wasAtBottom = chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 100;
+    if (wasAtBottom) {
+        chat.scrollTop = chat.scrollHeight;
+    }
+}
+
+function updateStatus() {
+    fetch('/status').then(r => r.json()).then(data => {
+        let avatar = document.getElementById('status-avatar');
+        let text = document.getElementById('status-text');
+        if (data.current_user === 'NYXX') {
+            avatar.src = '/data/images/nyxx.png?' + Date.now();
+            avatar.onerror = () => avatar.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMzAiIGZpbGw9IiNmZjQ0NDQiLz4KPHRleHQgeD0iMzAiIHk9IjM2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjI0IiBmaWxsPSIjZmYwMDAwIj5OPC90ZXh0Pgo8L3N2Zz4K';
+            text.innerHTML = `Entered the Shadow as: NYXX | Online: ${data.online_users}`;
+        } else {
+            avatar.src = '/data/images/avatar.png?' + Date.now();
+            avatar.onerror = () => avatar.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMzAiIGZpbGw9IiMzMzMiLz4KPHRleHQgeD0iMzAiIHk9IjM2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjI0IiBmaWxsPSIjMGYwIj5BPC90ZXh0Pgo8L3N2Zz4K';
+            text.innerHTML = `Entered the Shadow as: ${data.current_user} | Online: ${data.online_users}`;
+        }
+    });
+}
+
+function sendMessage() {
+    let message = document.getElementById('input').value.trim();
+    if (!message) return;
+
+    fetch('/chat_send', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message: message, room: currentRoom})
+    });
+    document.getElementById('input').value = '';
+}
+
+function logout() {
+    fetch('/command', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({command: 'exit'})
+    }).then(() => window.location.href = '/');
+}
+
+document.getElementById('input').addEventListener('keypress', e => {
+    if (e.key === 'Enter') sendMessage();
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    initDragAndDrop();
+    loadRoomsSeparated();
+    getCurrentUser();
+    
+    fetch(`/chat_history?room=${currentRoom}`)
+    .then(r => r.json())
+    .then(data => {
+        chat.innerHTML = '';
+        lastMessageCount = data.history.length;
+        
+        data.history.forEach(msg => {
+            const div = document.createElement('div');
+            if (msg.user_id === 'SYSTEM') {
+                div.className = 'message system-msg';
+                div.innerHTML = `<span class="time">[${msg.time}]</span> <span style="color: #FFFFFF; font-weight: bold; text-shadow: 0 0 10px #FFFFFF;">${msg.user}</span> ${msg.message}`;
+            } else if (msg.user_id === 'NYXX_MASTER') {
+                div.className = 'message nyxx-message';
+                div.innerHTML = `<span class="time">[${msg.time}]</span> <span class="nyxx-glow">${msg.user}:</span> ${msg.message}`;
+            } else if (msg.user === MY_USERNAME) {
+                div.className = 'message my-message';
+                div.innerHTML = `<span class="time">[${msg.time}]</span> <b>${msg.user}:</b> ${msg.message}`;
+            } else {
+                div.className = 'message other-message';
+                div.innerHTML = `<span class="time">[${msg.time}]</span> <b>${msg.user}:</b> ${msg.message}`;
+            }
+            chat.appendChild(div);
+        });
+    });
+    
+    updateStatus();
+});
+
+setInterval(updateChat, 2000);
+setInterval(updateStatus, 5000);
+
+</script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+{
+  "general": [
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Flux Chasm entered the Shadows!",
+      "time": "15:14:46",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Beacon Echo entered the Shadows!",
+      "time": "15:15:48",
+      "system": true
+    },
+    {
+      "user": "Beacon Echo",
+      "user_id": "E7D0BF1E",
+      "message": "Dhdhd",
+      "time": "15:15:54",
+      "system": false
+    },
+    {
+      "user": "Flux Chasm",
+      "user_id": "2FD394D2",
+      "message": "dffddf",
+      "time": "15:16:05",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Beacon Echo left the Shadows",
+      "time": "15:16:17",
+      "system": true
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "NYXX(MASTER) entered the Shadows!",
+      "time": "15:16:26",
+      "system": true
+    },
+    {
+      "user": "NYXX",
+      "user_id": "NYXX_MASTER",
+      "message": "Dhdhd",
+      "time": "15:16:35",
+      "system": false
+    },
+    {
+      "user": "Flux Chasm",
+      "user_id": "2FD394D2",
+      "message": "fdfdfd",
+      "time": "15:16:50",
+      "system": false
+    },
+    {
+      "user": "Flux Chasm",
+      "user_id": "2FD394D2",
+      "message": "dfdf",
+      "time": "15:17:26",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Flux Chasm entered the Shadows!",
+      "time": "15:25:58",
+      "system": true
+    },
+    {
+      "user": "Flux Chasm",
+      "user_id": "2FD394D2",
+      "message": "dfdfdf",
+      "time": "15:26:04",
+      "system": false
+    },
+    {
+      "user": "SYSTEM",
+      "user_id": "SYSTEM",
+      "message": "Beacon Echo entered the Shadows!",
+      "time": "15:26:23",
+      "system": true
+    },
+    {
+      "user": "Beacon Echo",
+      "user_id": "E7D0BF1E",
+      "message": "Dhdhd",
+      "time": "15:26:31",
+      "system": false
+    },
+    {
+      "user": "Flux Chasm",
+      "user_id": "2FD394D2",
+      "message": "dffdfdfd",
+      "time": "15:26:39",
+      "system": false
+    }
+  ]
+}
