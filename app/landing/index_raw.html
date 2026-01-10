@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NEXUS — Your Private Terminal Chat</title>
+  <meta name="description" content="A self-hosted, zero-metadata chat authenticated by seed phrase. No phone. No cloud. Just you.">
+  <style>
+    :root {
+      --text: #0f0;
+      --accent: #00ff88;
+      --bg: #000;
+      --panel: #111;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      line-height: 1.6;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .header {
+      font-size: 2.8em;
+      background: linear-gradient(90deg, var(--text), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 20px 0;
+    }
+    .tagline {
+      font-size: 1.3em;
+      color: var(--accent);
+      margin: 10px 0 30px;
+    }
+    .lang-switch {
+      text-align: right;
+      margin-bottom: 20px;
+      font-size: 0.9em;
+    }
+    .lang-link {
+      color: var(--accent);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .btn {
+      display: inline-block;
+      background: linear-gradient(145deg, var(--text), var(--accent));
+      color: #000;
+      padding: 12px 24px;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 4px;
+      margin-top: 20px;
+      font-family: monospace;
+    }
+    .features { margin: 40px 0; }
+    .feature { margin: 14px 0; padding-left: 20px; position: relative; }
+    .feature::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+    .footer {
+      margin-top: 60px;
+      color: #444;
+      font-size: 0.9em;
+      border-top: 1px solid #222;
+      padding-top: 20px;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="lang-switch">
+    <span class="lang-link" onclick="showLang('en')">EN</span> | 
+    <span class="lang-link" onclick="showLang('ru')">RU</span>
+  </div>
+
+  <!-- EN -->
+  <div id="lang-en">
+    <div class="header">NEXUS</div>
+    <div class="tagline">The terminal chat that never logs your soul.</div>
+
+    <p>
+      No phone number. No email. No cloud. Just your seed phrase.
+    </p>
+
+    <div class="features">
+      <div class="feature">End-to-end ownership — your messages, your server</div>
+      <div class="feature">Authenticate with a BIP39 seed phrase — like crypto wallets</div>
+      <div class="feature">Global rooms + private channels — no corporate moderation</div>
+      <div class="feature">Self-hosted, open-core, no telemetry</div>
+      <div class="feature">Built for privacy rebels, hackers, and terminal lovers</div>
+    </div>
+
+    <p>
+      Nexus is not a messenger. It’s a statement: <b>communication belongs to you</b>.
+    </p>
+
+    <a href="..." class="btn">Try it for free now</a>
+
+    <div class="footer">
+      © 2026 — for those who dwell in the Shadows.
+    </div>
+  </div>
+
+  <!-- RU -->
+  <div id="lang-ru" class="hidden">
+    <div class="header">NEXUS</div>
+    <div class="tagline">Терминальный чат, который не хранит и не продает твои данные.</div>
+
+    <p>
+      Никакого телефона. Никакой почты. Никакого облака. Только seed-фраза.
+    </p>
+
+    <div class="features">
+      <div class="feature">Полный контроль — твои сообщения, твой сервер</div>
+      <div class="feature">Авторизация по seed-фразе (BIP39) — как в криптокошельках</div>
+      <div class="feature">Глобальные комнаты + приватные каналы — без модерации</div>
+      <div class="feature">Самостоятельный хостинг, open-core, без телеметрии</div>
+      <div class="feature">Для тех, кто ценит приватность, терминал и свободу</div>
+    </div>
+
+    <p>
+      Nexus — это не мессенджер. Это заявление: <b>коммуникация принадлежит тебе</b>.
+    </p>
+
+    <a href="..." class="btn">Попробуй и убедись в этом абсолютно бесплатно</a>
+
+    <div class="footer">
+      © 2026 — для тех, кто не страшится Тени.
+    </div>
+  </div>
+
+  <script>
+    function showLang(lang) {
+      document.getElementById('lang-en').classList.toggle('hidden', lang !== 'en');
+      document.getElementById('lang-ru').classList.toggle('hidden', lang !== 'ru');
+    }
+    if (navigator.language.startsWith('ru')) {
+      showLang('ru');
+    }
+  </script>
+</body>
+</html>
