@@ -225,6 +225,7 @@ let userRooms = [];
 let isNyxx = false;
 let colorCache = {};
 let lastMessageTime = null;
+let seenMessages = new Set();
 
 // 🔥 ЛОКАЛЬНЫЙ СЧЁТЧИК — НЕ ЗАВИСИМ ОТ СЕРВЕРА ДЛЯ АКТИВНОЙ КОМНАТЫ
 let localUnread = {};
@@ -406,13 +407,15 @@ function switchRoom(roomName) {
     currentRoom = roomName;
     lastMessageTime = null;
     
+    // Очищаем историю виденных сообщений при смене комнаты
+    seenMessages = new Set();
+    
     fetch('/set_current_room', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({room: roomName})
     });
     
-    // 🔥 ГАРАНТИРОВАННО СБРАСЫВАЕМ ЛОКАЛЬНЫЙ СЧЁТЧИК
     localUnread[roomName] = 0;
     
     document.querySelectorAll('.room-item').forEach(item => 
@@ -557,29 +560,13 @@ function updateChat() {
     .then(data => {
         if (data.history.length === 0) return;
         
-        // Получаем текущие сообщения для сравнения
-        const existingMessages = new Set();
-        Array.from(chat.children).forEach(el => {
-            const timeEl = el.querySelector('.time');
-            if (timeEl) {
-                const time = timeEl.textContent.replace(/[\[\]]/g, '');
-                const user = el.querySelector('b, .nyxx-glow, [style*="FFFFFF"]')?.textContent || '';
-                const msgText = el.textContent
-                    .replace(timeEl.textContent, '')
-                    .replace(user, '')
-                    .replace(/:/g, '')
-                    .trim();
-                existingMessages.add(`${time}|${user}|${msgText}`);
-            }
-        });
-
         data.history.forEach(msg => {
             const key = `${msg.time}|${msg.user}|${msg.message || ''}`;
-            if (!existingMessages.has(key)) {
-                appendMessage(msg);
-                lastMessageTime = msg.time;
-                existingMessages.add(key);
-            }
+            if (seenMessages.has(key)) return;
+            if (msg.time <= lastMessageTime) return;
+            appendMessage(msg);
+            lastMessageTime = msg.time;
+            seenMessages.add(key);
         });
         
         const wasAtBottom = chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 100;
