@@ -1,0 +1,6 @@
+shadows.nyxx.su {
+    reverse_proxy nexus_server:5000 {
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}
