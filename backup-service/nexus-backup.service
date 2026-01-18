@@ -1,0 +1,7 @@
+[Unit]
+Description=Nexus data backup
+
+[Service]
+Type=oneshot
+User=nexus
+ExecStart=/usr/local/bin/backup.sh

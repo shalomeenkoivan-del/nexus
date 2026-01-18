@@ -8,6 +8,8 @@ services:
   nexus_server:
     build: ./app
     container_name: nexus_server_container
+    volumes:
+      - /home/nexus/nexus_server/data:/app/src/data:rw
     expose:
       - 5000
     networks:

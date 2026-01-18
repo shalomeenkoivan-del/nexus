@@ -1,0 +1,10 @@
+[Unit]
+Description=Run backup every hour
+Requires=nexus-backup.service
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+
+[Install]
+WantedBy=timers.target
